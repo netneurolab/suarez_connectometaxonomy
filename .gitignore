@@ -1,0 +1,21 @@
+# data files
+data/
+TMP/
+raw_results/
+
+# hidden files
+.DS_store
+
+# visual code studio
+.vscode/
+
+# docstrings
+docs/generated/
+docs/auto_examples/
+docs/modules/
+
+# byte-compiled / optimized / DLL files
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*$py.class
