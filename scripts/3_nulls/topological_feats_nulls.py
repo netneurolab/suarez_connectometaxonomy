@@ -26,9 +26,9 @@ from rnns import topology
 import multiprocessing as mp
 
 #%%
-PROJ_DIR = 'E:/P9_EIG'
+PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
 RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
 

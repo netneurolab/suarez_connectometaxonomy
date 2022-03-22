@@ -5,6 +5,9 @@ Created on Thu Aug 26 16:04:13 2021
 @author: Estefany Suarez
 """
 
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import os
 import re
 import itertools as itr
@@ -25,12 +28,12 @@ from rnns import topology
 #%%
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
 RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
 
 #%% connectivity matrix
-data = pd.read_csv(os.path.join(INFO_DIR, 'list2.csv'), dtype={'Name':str})
+data = pd.read_csv(os.path.join(INFO_DIR, 'list.csv'), dtype={'Name':str})
 
 
 #%%
@@ -73,8 +76,6 @@ df_info = pd.DataFrame(data=np.column_stack([np.arange(len(filenames)), names, f
                        columns=['Id', 'Name', 'Filename', 'Order', 'Superorder', 'Family'],
                        index=None)
 
-# df_info.to_csv('E:/P9_EIG/raw_results/info.csv')
-
 #%% local properties
 local_node_props = [
                     'node_strength',
@@ -92,8 +93,8 @@ avg_local_p = []
 std_local_p = []
 for prop in local_node_props:
     p = topology.local_topology(w=conn, property=prop)
-    # np.save(os.path.join(RAW_DIR, f'{prop}.npy'), p)
-    
+    np.save(os.path.join(RAW_DIR, f'{prop}.npy'), p)
+
     avg_local_p.append(np.mean(p, axis=1))
     std_local_p.append(np.std(p, axis=1))
 
@@ -165,5 +166,4 @@ df_density = pd.DataFrame(np.column_stack([global_density, lh_conns, rh_conns, i
 
 #%%
 df = pd.concat([df_info, df_local, df_global, df_density], axis=1)
-# df.to_csv(os.path.join(RAW_DIR, 'df_props.csv'), index=False)
-# df = pd.read_csv(os.path.join(RAW_DIR, 'df_props.csv'))
+df.to_csv(os.path.join(RAW_DIR, 'df_props.csv'), index=False)

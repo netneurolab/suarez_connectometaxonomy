@@ -28,15 +28,15 @@ from netneurotools import plotting
 
 
 #%%
-PROJ_DIR = 'E:/P9_EIG'
+PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
 RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
 
 #%%
 df = pd.read_csv(os.path.join(RAW_DIR, 'df_props.csv'))
-C = (200*199)/2 # total number of connections 
+C = (200*199)/2 # total number of connections
 
 #%%
 order_labels = [
@@ -68,7 +68,7 @@ include_properties = [
                         'avg_bin_node_centrality',
                         'avg_wei_efficiency',
                         'avg_bin_efficiency',
-                        # 'std_node_strength', 
+                        # 'std_node_strength',
                         # 'std_node_degree',
                         # 'std_wei_clustering_coeff',
                         # 'std_bin_clustering_coeff',
@@ -81,19 +81,19 @@ include_properties = [
                         'wei_transitivity',
                         'bin_transitivity',
                         'wei_assortativity',
-                        'bin_assortativity',  
-                        # 'density', 
+                        'bin_assortativity',
+                        # 'density',
                      ]
 
 df = df.loc[:,['Id','Name', 'Filename', 'Order'] + include_properties]
 
 #%% distribution of topological properties
 for i, p in enumerate(include_properties):
-    
+
     df[p] = df[p].astype(float)
     df[p] = df[p]/df_nulls[p]
 
-    sns.set(style="ticks", font_scale=1.5, palette=sns.color_palette('Set3', len(order_labels)))  #palette='mako', 
+    sns.set(style="ticks", font_scale=1.5, palette=sns.color_palette('Set3', len(order_labels)))  #palette='mako',
     fig, ax = plt.subplots(1,1,figsize=(10,4))
 
     plot = sns.boxplot(data=df, x='Order', y=p,
@@ -102,7 +102,7 @@ for i, p in enumerate(include_properties):
                           # hue='model',
                             showfliers=False
                           )
-    
+
     # plot._legend.remove()
     sns.despine(offset=10, trim=True)
     # fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'boxplt_{p}.eps'), transparent=True, bbox_inches='tight', dpi=300)

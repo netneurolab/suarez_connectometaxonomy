@@ -21,12 +21,11 @@ import seaborn as sns
 from netneurotools import plotting
 
 #%%
-PROJ_DIR = 'E:/P9_EIG'
+PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'conn')
-
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results') 
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results')
 
 #%%
 info = pd.read_csv(os.path.join(RAW_DIR, 'info.csv'))
@@ -43,26 +42,25 @@ order_labels = {
 
 #%% distance between orders
 def fig2_pa(distance, title, flag):
-    
+
     int_communities = np.array([order_labels[o] for o in info.Order[flag==1]])
-    
-    distance_ = distance.copy()#[np.ix_(flag==1, flag==1)]
+
+    distance_ = distance.copy()
     distance_ = (distance_-np.min(distance_))/(np.max(distance_)-np.min(distance_))
-    
+
     # plot
-    sns.set(style="ticks", font_scale=2.0)  
-    ax = plotting.plot_mod_heatmap(data=distance_, 
+    sns.set(style="ticks", font_scale=2.0)
+    ax = plotting.plot_mod_heatmap(data=distance_,
                               communities=int_communities,
-                              inds=None, 
-                              edgecolor='white', 
-                              ax=None, 
-                              figsize=(2*6.4, 2*4.8), 
+                              inds=None,
+                              edgecolor='white',
+                              ax=None,
+                              figsize=(2*6.4, 2*4.8),
                               xlabels=order_labels.keys(),
                               ylabels=order_labels.keys(),
-                              xlabelrotation=90, 
-                              ylabelrotation=0, 
-                              cbar=True, 
-                              # square=True,
+                              xlabelrotation=90,
+                              ylabelrotation=0,
+                              cbar=True,
                               cmap=sns.cubehelix_palette(as_cmap=True),
                               vmin=0.0,
                               vmax=1.0,
@@ -72,31 +70,31 @@ def fig2_pa(distance, title, flag):
 
 #%% summary distance between orders
 def fig2_pb(distance, title, flag):
-    
-    distance_ = distance.copy()#[np.ix_(flag==1, flag==1)]
+
+    distance_ = distance.copy()
     distance_ = (distance_-np.min(distance_))/(np.max(distance_)-np.min(distance_))
-    
+
     avg_distance = np.zeros((len(order_labels),len(order_labels)))
     for cluster_a,cluster_b in list(itr.combinations_with_replacement(order_labels.keys(), 2)):
-        
+
         idx_a = np.where(info.Order[flag==1] == cluster_a)[0]
         idx_b = np.where(info.Order[flag==1] == cluster_b)[0]
-    
+
         i = order_labels[cluster_a]-1
         j = order_labels[cluster_b]-1
-    
-        avg_distance[i,j] = np.median(distance_[np.ix_(idx_a, idx_b)])  
-        avg_distance[j,i] = avg_distance[i,j] 
-    
-    
+
+        avg_distance[i,j] = np.median(distance_[np.ix_(idx_a, idx_b)])
+        avg_distance[j,i] = avg_distance[i,j]
+
+
     # global scaling
     avg_distance = (avg_distance-np.min(avg_distance))/(np.max(avg_distance)-np.min(avg_distance))
-    
+
     mask = np.zeros_like(avg_distance).astype(bool)
     mask[np.tril_indices_from(mask, -1)] = True
-    
+
     # plot
-    sns.set(style="ticks", font_scale=2.0)  
+    sns.set(style="ticks", font_scale=2.0)
     fig = plt.figure(figsize=(12,10))
     ax = plt.subplot(111)
     sns.heatmap(avg_distance,
@@ -106,13 +104,13 @@ def fig2_pb(distance, title, flag):
                 yticklabels=order_labels.keys(),
                 annot_kws={'fontsize':20},
                 cmap=sns.cubehelix_palette(as_cmap=True),
-                linewidth=0.7, 
+                linewidth=0.7,
                 linecolor='white',
                 cbar_kws={"shrink":0.985},
                 # rasterized=True,
                 mask=mask
                 )
-    
+
     plt.xticks(rotation=45)
     # fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'median_{title}.eps'), transparent=True, bbox_inches='tight', dpi=300)
     plt.show()
@@ -126,7 +124,7 @@ def u_test(x,y):
                                   alternative='two-sided',
                                   )
     U = U/(len(x)*len(y))
-    
+
     return U, pval
 
 def cohen_d_2samp(x,y):
@@ -144,16 +142,16 @@ def welch_test(x,y):
                               alternative='two-sided'
                               )
     es = cohen_d_2samp(x,y)
-    
+
     return es, pval
 
 def fig2_pc(distance, title, flag):
-    
-    dist = distance.copy()#[np.ix_(flag==1, flag==1)]
-    
+
+    dist = distance.copy()
+
     order_pairs = list(itr.combinations(info.Order[flag==1], 2))
     idx_pairs   = list(itr.combinations(range(len(info.Order[flag==1])), 2))
-    
+
     # within-orders species
     within_pairs = np.array([idx_pairs[i] for i, pair in enumerate(order_pairs) if pair[0] == pair[1]])
     i_within,j_within = zip(*within_pairs)
@@ -181,19 +179,19 @@ def fig2_pc(distance, title, flag):
     # kde plot
     within = df.loc[df['label'] == 'within',:]
     between = df.loc[df['label'] == 'between',:]
-    
+
     sns.set(style="ticks", font_scale=2.0)
     fig, ax = plt.subplots(1,1, figsize=(5,5))
-    sns.kdeplot(x=within['distance'], 
+    sns.kdeplot(x=within['distance'],
                  fill=True,
                  ax=ax,
                  label='within',
                  cut=0,
                  # clip=(0, 1.0)
                  )
-    sns.kdeplot(x=between['distance'], 
+    sns.kdeplot(x=between['distance'],
                  fill=True,
-                 ax=ax, 
+                 ax=ax,
                  label='between',
                  cut=0,
                  # clip=(0, 1.0)
@@ -215,7 +213,7 @@ def fig2_pc(distance, title, flag):
     print(f'\nWil. Mann. Whithn. U test - effect size = {es_u} and pval: {pval_u}')
     print(f'\tmedian intra: {np.median(within.distance)}')
     print(f'\tmedian inter: {np.median(between.distance)}')
-    
+
     # print(f'variance intra: {np.var(within.distance)}')
     # print(f'variance inter: {np.var(between.distance)}')
 
@@ -229,9 +227,9 @@ def get_name_flag():
     for name in np.unique(info.Name):
         idx_name = np.where(info.Name == name)[0]
         name_flag[idx_name[0]] = 1
-        
+
     return name_flag
-        
+
     #%%
 distances = [
             'spectral_distance',
@@ -257,14 +255,13 @@ distances = [
 
 
 for distance in distances:
-    
-    print(f'\n----------- {distance} ------------')    
+
+    print(f'\n----------- {distance} ------------')
     avg_dist = np.load(os.path.join(RAW_DIR, f'avg_{distance}.npy'))
     order_flag = get_order_flag()
-    name_flag  = get_name_flag() 
+    name_flag  = get_name_flag()
     flag = np.logical_and(order_flag, name_flag)
 
     fig2_pa(avg_dist, distance, flag)
     fig2_pb(avg_dist, distance, flag)
     fig2_pc(avg_dist, distance, flag)
-

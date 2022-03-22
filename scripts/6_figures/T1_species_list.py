@@ -21,7 +21,7 @@ order_labels = [
                 'Primates',
                ]
 
-df_info = pd.read_csv('E:/P9_EIG/raw_results/info.csv', index_col='Id')
+df_info = pd.read_csv(os.path.join(INFO_DIR, 'info.csv'), index_col='Id')
 names, counts = np.unique(df_info['Name'], return_counts=True)
 
 flag = np.array([1 if df_info.loc[df_info.Name == n]['Order'].values[0] in order_labels else 0 for n in names])

@@ -17,9 +17,9 @@ from matplotlib.ticker import MultipleLocator, MaxNLocator
 import seaborn as sns
 
 #%%
-PROJ_DIR = 'E:/P9_EIG'
+PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
 RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
 
@@ -47,19 +47,19 @@ df['intrah_conns_p'] = df['intrah_conns']/df['total_conns']
 # df['intrah_conns_p'] = df['intrah_conns']/C
 
 df_ = df[['Id', 'Order', 'interh_conns_p', 'intrah_conns_p']]
-df_ = pd.melt(df_, id_vars=['Id','Order'], 
-              value_vars=['interh_conns_p', 'intrah_conns_p'], 
+df_ = pd.melt(df_, id_vars=['Id','Order'],
+              value_vars=['interh_conns_p', 'intrah_conns_p'],
               var_name='conn_type',
               value_name='conn_density')
 
 
-sns.set(style="ticks", font_scale=2.0, palette=sns.color_palette('Set3', len(order_labels))) 
+sns.set(style="ticks", font_scale=2.0, palette=sns.color_palette('Set3', len(order_labels)))
 fig, ax = plt.subplots(1,1,figsize=(10,5))
-sns.barplot(x="conn_type", 
-            y='conn_density', 
-            data=df_, 
-            hue="Order", 
-            ax=ax, 
+sns.barplot(x="conn_type",
+            y='conn_density',
+            data=df_,
+            hue="Order",
+            ax=ax,
             # width=.5,
             # kwargs={'width':0.5},
             # palette=sns.color_palette('Set3', len(order_labels))
@@ -81,19 +81,19 @@ df['rh_density'] = df['rh_conns']/df['total_conns']
 # df['rh_density'] = df['rh_conns']/C
 
 df_ = df[['Id', 'Order', 'lh_density', 'rh_density']]
-df_ = pd.melt(df_, id_vars=['Id','Order'], 
-              value_vars=['lh_density', 'rh_density'], 
+df_ = pd.melt(df_, id_vars=['Id','Order'],
+              value_vars=['lh_density', 'rh_density'],
               var_name='conn_type',
               value_name='conn_density')
 
 
-sns.set(style="ticks", font_scale=2.0, palette=sns.color_palette('Set3', len(order_labels))) 
+sns.set(style="ticks", font_scale=2.0, palette=sns.color_palette('Set3', len(order_labels)))
 fig, ax = plt.subplots(1,1,figsize=(10,5))
-sns.barplot(x="conn_type", 
-            y='conn_density', 
-            data=df_, 
-            hue="Order", 
-            ax=ax, 
+sns.barplot(x="conn_type",
+            y='conn_density',
+            data=df_,
+            hue="Order",
+            ax=ax,
             # palette=sns.color_palette('Set3', len(order_labels))
             )
 ax.get_legend().remove()

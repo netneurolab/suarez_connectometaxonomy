@@ -29,9 +29,9 @@ from rnns import topology
 import curve_fitting as cf
 
 #%%
-PROJ_DIR = 'E:/P9_EIG'
+PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
 RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
 
@@ -43,11 +43,11 @@ order_labels = [
                 'Carnivora',
                 'Perissodactyla',
                 'Primates',
-                # 'Xenarthra', 
-                # 'Marsupialia', 
-                # 'Eulipotyphla', 
-                # 'Scandentia', 
-                # 'Lagomorpha', 
+                # 'Xenarthra',
+                # 'Marsupialia',
+                # 'Eulipotyphla',
+                # 'Scandentia',
+                # 'Lagomorpha',
                 # 'Hyracoidea'
                 ]
 
@@ -57,23 +57,22 @@ def select_model(data, variable, transform_variables):
         Regress out variable from transform_variables
         data: DataFrame
         variable: str
-        transform_variables: dictionary whose keys correspond to variables and 
+        transform_variables: dictionary whose keys correspond to variables and
         values correspond to the fitting model
     """
-    
+
     for p in transform_variables:
-        
+
         print(f'\n---------{p}----------')
-        
-        model, r2, y_pred, params = cf.select_model(x=data[variable].values.astype(float), 
+
+        model, r2, y_pred, params = cf.select_model(x=data[variable].values.astype(float),
                                                     y=data[p].values.astype(float),
                                                     score=cf.r2
                                                     )
-        
+
         if model == 'linear': eq = '$y = %5.3f x + %5.3f$' % tuple(params)
-        elif model == 'quadratic': eq = '$y = %5.3f x^2 + %5.3f x + %5.3f $' % tuple(params)
         elif model == 'exponential': eq = '$y = %5.3f e^{%5.3f x} + %5.3f$' % tuple(params)
-    
+
         try:
             textstr = '\n'.join((
                             f'{model} fit ($R^2 = %5.2f$)' % (r2, ),
@@ -81,8 +80,8 @@ def select_model(data, variable, transform_variables):
                             ))
         except:
             textstr = ''
-                
-        sns.set(style="ticks", font_scale=2.00) 
+
+        sns.set(style="ticks", font_scale=2.00)
         fig, axs = plt.subplots(1,1,figsize=(8,8))
         sns.scatterplot(data=data,
                         x=variable,
@@ -93,23 +92,23 @@ def select_model(data, variable, transform_variables):
                         palette=sns.color_palette("Set3", len(order_labels)),
                         ax=axs
                         )
-        
+
         if model is not None:
             sns.lineplot(data[variable].values.astype(float),
                          y_pred,
                          color='grey',
                          ax=axs,
                          )
-    
+
             # replace feature by model residuals
             if 'assortativity' not in p:
                 data[p] = data[p].values.astype(float) - y_pred
 
-                
+
         props = dict(boxstyle='round', facecolor='white', alpha=0.5)
         axs.text(0.05, 0.95, textstr, transform=axs.transAxes, fontsize=14,
                   verticalalignment='top', bbox=props)
-    
+
         axs.get_legend().remove()
         axs.set_xlim(0.10, 0.35)
 
@@ -117,9 +116,9 @@ def select_model(data, variable, transform_variables):
         # fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'reg_density_{p}.eps'), transparent=True, bbox_inches='tight', dpi=300)
         plt.show()
         plt.close()
-        
+
     return data
-      
+
 
 #%%
 local_bin = [
@@ -138,7 +137,7 @@ local_wei = [
              'avg_wei_clustering_coeff',
              'avg_wei_node_centrality',
              'avg_wei_efficiency',
-              'std_node_strength', 
+              'std_node_strength',
               'std_wei_clustering_coeff',
               'std_wei_node_centrality',
               'std_wei_efficiency',
@@ -147,7 +146,7 @@ local_wei = [
 global_bin = [
              'bin_char_path',
              'bin_transitivity',
-             'bin_assortativity',                
+             'bin_assortativity',
             ]
 
 global_wei = [
@@ -158,7 +157,7 @@ global_wei = [
 
 local_ = local_bin + local_wei
 global_ = global_bin + global_wei
- 
+
 bin_ = global_bin + local_bin
 wei_ = global_wei + local_wei
 
@@ -171,4 +170,4 @@ df_props = df_props.drop(drop_idx)
 
 #%%
 df_reg_props = select_model(df_props.copy(), 'density', all_)
-# df_reg_props.to_csv(os.path.join(RAW_DIR, 'df_props_reg.csv'), index=False)
+df_reg_props.to_csv(os.path.join(RAW_DIR, 'df_props_reg.csv'), index=False)

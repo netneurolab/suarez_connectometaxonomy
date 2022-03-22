@@ -31,14 +31,15 @@ import multiprocessing as mp
 
 
 #%%
-PROJ_DIR = 'E:/P9_EIG'
+PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'conn')
-COOR_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'coords')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+COOR_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'coords')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-
 RAW_RES_DIR = os.path.join(PROJ_DIR, 'raw_results')
-PROC_RES_DIR = os.path.join(PROJ_DIR, 'proc_results')
+
+if not os.path.exists(os.path.join(RAW_RES_DIR, 'nulls')):
+    os.mkdir(os.path.join(RAW_RES_DIR, 'nulls'))
 
 RND_SEED = 1234
 

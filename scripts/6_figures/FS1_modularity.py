@@ -27,16 +27,14 @@ from matplotlib.ticker import (MultipleLocator, FormatStrFormatter,
 from rnns import topology
 
 #%%
-PROJ_DIR = 'E:/P9_EIG'
+PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-
 RAW_RES_DIR = os.path.join(PROJ_DIR, 'raw_results')
-PROC_RES_DIR = os.path.join(PROJ_DIR, 'proc_results')
 
 #%% connectivity matrix
-data = pd.read_csv(os.path.join(INFO_DIR, 'list2.csv'), dtype={'Name':str})
+data = pd.read_csv(os.path.join(INFO_DIR, 'list.csv'), dtype={'Name':str})
 
 
 #%%
@@ -90,24 +88,24 @@ palette=sns.color_palette('Set3', len(order_labels))
 gammas = np.linspace(0.5,1.5,11)
 df = []
 for o in order_labels[:]:
-    
+
     names_tmp = filenames[np.where(order == o)[0]]
     for i in names_tmp:
-        q_scores = np.load(os.path.join(RAW_RES_DIR, 'rich_club_gamma_range', f'{i}_modularity_scores.npy'))
+        q_scores = np.load(os.path.join(RAW_RES_DIR, 'community_detection', f'{i}_modularity_scores.npy'))
         q_scores = np.mean(q_scores, axis=1)
-        
+
         df_ = pd.DataFrame(data=np.column_stack([gammas, q_scores]),
                            columns=['gamma', 'modularity'],
                            index=None)
-        df_['order'] = o    
-        
+        df_['order'] = o
+
         df.append(df_)
 
 df = pd.concat(df)
 
 #%%
 palette=sns.color_palette('Set3', len(order_labels))
-sns.set(style="ticks", font_scale=2.0) 
+sns.set(style="ticks", font_scale=2.0)
 fig, ax = plt.subplots(1,1,figsize=(20,10))
 sns.lineplot(x='gamma', y='modularity',
               data=df, hue='order',
@@ -127,7 +125,7 @@ plt.close()
 
 #%%
 df_ = df.loc[df['gamma'] == 1, :]
-sns.set(style="ticks", font_scale=1.5, palette=sns.color_palette('Set3', len(order_labels)))  #palette='mako', 
+sns.set(style="ticks", font_scale=1.5, palette=sns.color_palette('Set3', len(order_labels)))  #palette='mako',
 fig, ax = plt.subplots(1,1,figsize=(10,4))
 
 plot = sns.boxplot(data=df_, x='order', y='modularity',
@@ -142,4 +140,3 @@ sns.despine(offset=10, trim=True)
 # fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'modularity_gamma.eps'), transparent=True, bbox_inches='tight', dpi=300)
 plt.show()
 plt.close()
-

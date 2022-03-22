@@ -16,25 +16,22 @@ from sklearn.metrics import (explained_variance_score)
 
 def exponential(x, a, b, c):
         return a * np.exp(b * x) + c
-    
-# def quadratic(x, a, b, c):
-#     return a * x**2 + b * x + c
-    
+
 def linear(x, a, b):
     return a * x + b
-    
+
 def select_model(x, y, score, **kwargs):
     s = []
-    models = [linear,  exponential] #quadratic,
+    models = [linear,  exponential] 
     for model in models:
         popt, _ = curve_fit(model, x, y, maxfev=1000000)
         y_hat   = model(x, *popt)
         s.append(score(y, y_hat, len(popt)))
-        
+
         print(f'{str(model.__name__)} - R2 : {r2(y, y_hat)}')
         print(f'{str(model.__name__)} - AIC : {aic(y, y_hat, len(popt))}')
         print(f'{str(model.__name__)} - BIC : {bic(y, y_hat, len(popt))}')
-    
+
     model = models[np.argmax(s)]
     popt, _ = curve_fit(model, x, y, maxfev=1000000)
     y_hat   = model(x, *popt)
@@ -43,7 +40,7 @@ def select_model(x, y, score, **kwargs):
         return str(model.__name__), r2(y, y_hat), y_hat, popt
     else:
         return None, None, None, None
-    
+
 def bic(y, y_hat, k, *args, **kwargs):
     resid = y - y_hat
     sse = sum(resid**2)
@@ -61,5 +58,5 @@ def r2(y, y_hat, *args, **kwargs):
 def fit_curve(x, y, model):
     popt, _ = curve_fit(model, x, y, maxfev=1000000)
     y_hat   = model(x, *popt)
-    
+
     return popt, y_hat, r2(y, y_hat)

@@ -25,14 +25,14 @@ import matplotlib.pyplot as plt
 from rnns import topology
 
 #%%
-PROJ_DIR = 'E:/P9_EIG'
+PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
 RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
 
 #%% connectivity matrix
-data = pd.read_csv(os.path.join(INFO_DIR, 'list2.csv'), dtype={'Name':str})
+data = pd.read_csv(os.path.join(INFO_DIR, 'list.csv'), dtype={'Name':str})
 
 
 #%%
@@ -103,8 +103,9 @@ order_labels = [
 
 
 #%%
-palette=sns.color_palette('Set3', len(order_labels))
+print("Binary local features - Cumulative distribution")
 
+palette=sns.color_palette('Set3', len(order_labels))
 fig, axs = plt.subplots(len(order_labels),
                         len(local_bin_node_props),
                         figsize=(20,20),
@@ -116,18 +117,18 @@ axs = axs.ravel()
 cont_col = 0
 for p in local_bin_node_props:
     prop = np.load(os.path.join(RAW_DIR, f'{p}.npy'))
-        
+
     cont_row = 0
     for o in order_labels:
         p_tmp = prop[np.where(order == o)[0]]
-        
+
         for i,j in enumerate(p_tmp):
             sns.ecdfplot(x=j, color=palette[np.where(np.array(order_labels) == o)[0][0]], ax=axs[cont_row+cont_col])
-        
+
         axs[cont_row+cont_col].set_xlim(0,np.percentile(prop, 99))
         axs[cont_row+cont_col].set_xlim(0,np.percentile(prop, 99))
         cont_row += len(local_bin_node_props)
-    
+
     cont_col += 1
     sns.despine(offset=10, trim=False)
 
@@ -136,8 +137,9 @@ plt.show()
 plt.close()
 
 #%%
-palette=sns.color_palette('Set3', len(order_labels))
+print("Weighted local features - Cumulative distribution")
 
+palette=sns.color_palette('Set3', len(order_labels))
 fig, axs = plt.subplots(len(order_labels),
                         len(local_wei_node_props),
                         figsize=(20,20),
@@ -149,22 +151,21 @@ axs = axs.ravel()
 cont_col = 0
 for p in local_wei_node_props:
     prop = np.load(os.path.join(RAW_DIR, f'{p}.npy'))
-        
+
     cont_row = 0
     for o in order_labels:
         p_tmp = prop[np.where(order == o)[0]]
-        
+
         for i,j in enumerate(p_tmp):
             sns.ecdfplot(x=j, color=palette[np.where(np.array(order_labels) == o)[0][0]], ax=axs[cont_row+cont_col])
-        
+
         axs[cont_row+cont_col].set_xlim(0,np.percentile(prop, 99))
         axs[cont_row+cont_col].set_xlim(0,np.percentile(prop, 99))
         cont_row += len(local_bin_node_props)
-    
+
     cont_col += 1
     sns.despine(offset=10, trim=False)
 
 # fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', 'cum_local_wei_props.eps'), transparent=True, bbox_inches='tight', dpi=300)
 plt.show()
 plt.close()
-

@@ -37,9 +37,7 @@ DATA_DIR = os.path.join(PROJ_DIR, 'data')
 CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'conn')
 COOR_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'coords')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-
 RAW_RES_DIR = os.path.join(PROJ_DIR, 'raw_results')
-PROC_RES_DIR = os.path.join(PROJ_DIR, 'proc_results')
 
 RND_SEED = 1234
 
@@ -59,15 +57,14 @@ def participation_index(file):
             # consensus community detection
             np.random.default_rng(RND_SEED)
             ci, q, _ = modularity.consensus_modularity(w, gamma=1.0)
-
             cis = np.unique(ci)
-            _, q = bct.modularity.modularity_und(w, kci=ci)
+            # _, q = bct.modularity.modularity_und(w, kci=ci)
             print('------- end community detection -------')
 
             # node degree
             ki = np.sum(w, axis=1)
 
-            # participation coefficient 
+            # participation coefficient
             pi = []
             for node in range(len(w)):
                 ratio = []
@@ -114,12 +111,7 @@ def rich_club(file):
     p_vals = []
     for k in range(zrc_tmp.shape[-1]):
         upper = len(np.where(zrc_tmp[1:,k] > zrc_tmp[0,k])[0])
-        # lower = len(np.where(zrc_tmp[1:,k] < -zrc_tmp[0,k])[0])
-
-        # p_vals.append((upper+lower)/len(rc_nulls))
         p_vals.append(upper/len(rc_nulls))
-
-    # _, p_vals = multi.fdrcorrection(np.array(p_vals)[rc_norm > 1.00], alpha=0.05, method='indep', is_sorted=False)
 
     np.save(os.path.join(RAW_RES_DIR, 'rich_club', f'{filename}_phi'), rc)
     np.save(os.path.join(RAW_RES_DIR, 'rich_club', f'{filename}_knodes'), knodes)
@@ -136,15 +128,15 @@ def main():
     # hubs
     print ('\nINITIATING PROCESSING TIME - PARTICIPATION INDEX')
     t0 = time.perf_counter()
-    
+
     params = [{'file':file} for file in os.listdir(CONN_DIR)]
-    
+
     # run iterations for all subjects in CONN_DIR
     pool1 = mp.Pool(processes=5)
     res1 = [pool1.apply_async(participation_index, (), p) for p in params]
     for r in res1: r.get()
     pool1.close()
-    
+
     print ('\nTOTAL PROCESSING TIME - PARTICIPATION INDEX')
     print (time.perf_counter()-t0, "seconds process time")
     print ('END')

@@ -27,9 +27,9 @@ from rnns import topology
 import curve_fitting as cf
 
 #%%
-PROJ_DIR = 'E:/P9_EIG'
+PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
 RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
 
@@ -38,11 +38,11 @@ def distance(df, name, include_properties=None, metric='cosine'):
 
     if include_properties is not None: X = df[include_properties].values
     else: X = df.values
-    
+
     X = stats.zscore(X, axis=0)
     distance = squareform(pdist(X, metric=metric), force='tomatrix')
     np.save(os.path.join(RAW_DIR, name), distance)
-    
+
 #%%
 local_bin = [
              'avg_node_degree',
@@ -60,7 +60,7 @@ local_wei = [
              'avg_wei_clustering_coeff',
              'avg_wei_node_centrality',
              'avg_wei_efficiency',
-             'std_node_strength', 
+             'std_node_strength',
              'std_wei_clustering_coeff',
              'std_wei_node_centrality',
              'std_wei_efficiency',
@@ -69,7 +69,7 @@ local_wei = [
 global_bin = [
              'bin_char_path',
              'bin_transitivity',
-             'bin_assortativity',                
+             'bin_assortativity',
             ]
 
 global_wei = [
@@ -80,7 +80,7 @@ global_wei = [
 
 local_ = local_bin + local_wei
 global_ = global_bin + global_wei
- 
+
 bin_ = global_bin + local_bin
 wei_ = global_wei + local_wei
 
@@ -104,4 +104,3 @@ options_reg = {
 
 for k,v in options_reg.items():
     distance(df_reg_props.copy(), k, v)
-

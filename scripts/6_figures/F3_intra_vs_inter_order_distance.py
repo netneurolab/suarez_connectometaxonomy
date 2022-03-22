@@ -20,15 +20,14 @@ import seaborn as sns
 
 
 #%%
-PROJ_DIR = 'E:/P9_EIG'
+PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'conn')
-
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results') 
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results')
 
 #%%
-info = pd.read_csv(os.path.join(RAW_DIR, 'info.csv'))
+info = pd.read_csv(os.path.join(INFO_DIR, 'info.csv'))
 
 #%%
 order_labels = [
@@ -47,7 +46,7 @@ def u_test(x,y):
                                   alternative='two-sided',
                                   )
     U = U/(len(x)*len(y))
-    
+
     return U, pval
 
 def cohen_d_2samp(x,y):
@@ -65,16 +64,16 @@ def welch_test(x,y):
                               alternative='two-sided'
                               )
     es = cohen_d_2samp(x,y)
-    
+
     return es, pval
 
 def fig3(distance, title, flag):
-    
-    dist = distance.copy()#[np.ix_(flag==1, flag==1)]
-    
+
+    dist = distance.copy()
+
     order_pairs = list(itr.combinations(info.Order[flag==1], 2))
     idx_pairs   = list(itr.combinations(range(len(info.Order[flag==1])), 2))
-    
+
     # within-orders species
     within_pairs = np.array([idx_pairs[i] for i, pair in enumerate(order_pairs) if pair[0] == pair[1]])
     i_within,j_within = zip(*within_pairs)
@@ -102,19 +101,19 @@ def fig3(distance, title, flag):
     # kde plot
     within = df.loc[df['label'] == 'within',:]
     between = df.loc[df['label'] == 'between',:]
-    
+
     sns.set(style="ticks", font_scale=2.0)
     fig, ax = plt.subplots(1,1, figsize=(5,5))
-    sns.kdeplot(x=within['distance'], 
+    sns.kdeplot(x=within['distance'],
                  fill=True,
                  ax=ax,
                  label='within',
                  cut=0,
                  # clip=(0, 1.0)
                  )
-    sns.kdeplot(x=between['distance'], 
+    sns.kdeplot(x=between['distance'],
                  fill=True,
-                 ax=ax, 
+                 ax=ax,
                  label='between',
                  cut=0,
                  # clip=(0, 1.0)
@@ -136,7 +135,7 @@ def fig3(distance, title, flag):
     print(f'Wil. Mann. Whithn. U test - effect size = {es_u} and pval: {pval_u}')
     print(f'\tmedian intra: {np.median(within.distance)}')
     print(f'\tmedian inter: {np.median(between.distance)}')
-    
+
     print(f'\n\tvariance intra: {np.var(within.distance)}')
     print(f'\tvariance inter: {np.var(between.distance)}')
 
@@ -150,9 +149,9 @@ def get_name_flag():
     for name in np.unique(info.Name):
         idx_name = np.where(info.Name == name)[0]
         name_flag[idx_name[0]] = 1
-        
+
     return name_flag
-        
+
     #%%
 distances = [
             # 'spectral_distance',
@@ -169,12 +168,11 @@ distances = [
 
 
 for distance in distances:
-    
-    print(f'\n----------- {distance} ------------')    
+
+    print(f'\n----------- {distance} ------------')
     avg_dist = np.load(os.path.join(RAW_DIR, f'avg_{distance}.npy'))
     order_flag = get_order_flag()
-    name_flag  = get_name_flag() 
+    name_flag  = get_name_flag()
     flag = np.logical_and(order_flag, name_flag)
 
     fig3(avg_dist, distance, flag)
-
