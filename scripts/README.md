@@ -56,7 +56,6 @@ If you read something in the manuscript and have a question about the methodolog
 Once you have run all the previous analyses, you can now generate the figures of the manuscript by running:
 
 ```bash
-cd suarez_connectometaxonomy
 python scripts/6_figures/F{fig_num}_{fig_name}.py
 ```
 Replace {fig_num} by the number of the figure, and {fig_name} by the name of the figure.
