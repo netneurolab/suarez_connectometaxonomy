@@ -18,9 +18,7 @@ Once you've done that, you can get going with the following:
 git clone https://github.com/netneurolab/suarez_connectometaxonomy
 cd suarez_connectometaxonomy
 conda env create -f environment.yml
-conda activate env
-pip install parspin/
-make all
+conda activate suarez_connectometaxonomy
 ```
 
 ## "I have some questions..."
