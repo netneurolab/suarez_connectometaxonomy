@@ -92,4 +92,4 @@ python scripts/6_figures/F{fig_num}_{fig_name}.py
 
 Replace {fig_num} by the number of the figure, and {fig_name} by the name of the figure.
 
-If you just want to generate the figures of the manuscript without having to run all the analyses, you can download the `raw_results` folder from [![DOI]https://zenodo.org/badge/DOI/10.5281/zenodo.6382386.svg)](https://doi.org/10.5281/zenodo.6382386) and place it into the `suarez_connectometaxonomy` repository's root directory. After that, run the above command for each figure.
+If you just want to generate the figures of the manuscript without having to run all the analyses, you can download the `raw_results` folder from [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6382386.svg)](https://doi.org/10.5281/zenodo.6382386) and place it into the `suarez_connectometaxonomy` repository's root directory. After that, run the above command for each figure.
