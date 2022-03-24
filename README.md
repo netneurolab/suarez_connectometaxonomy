@@ -10,9 +10,9 @@ We've tried to document the various aspects of this repository with several READ
 
 ## "Just let me run the things!"
 
-Itching to just run the analyses?
-You'll need to make sure you have installed the appropriate software packages and have downloaded the appropriate data files.
-Once you've done that, you can get going with the following:
+Itching to just run the analyses? You'll need to make sure you have installed the appropriate software packages and have downloaded the appropriate data files.
+
+1. Git clone the [suarez_connectometaxonomy](https://github.com/netneurolab/suarez_connectometaxonomy.git) repository. To do so, in the command line type:
 
 ```bash
 git clone https://github.com/netneurolab/suarez_connectometaxonomy
@@ -20,6 +20,10 @@ cd suarez_connectometaxonomy
 conda env create -f environment.yml
 conda activate suarez_connectometaxonomy
 ```
+
+2. Download the `data` folder from [![DOI]https://zenodo.org/badge/DOI/10.5281/zenodo.6382386.svg)](https://doi.org/10.5281/zenodo.6382386) and place it into the repository's root directory.
+
+3. Follow the step by step given in the README file of the `scripts` folder.
 
 ## "I have some questions..."
 
