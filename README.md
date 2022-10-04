@@ -21,7 +21,7 @@ conda env create -f environment.yml
 conda activate suarez_connectometaxonomy
 ```
 
-2. Download the `data` folder from [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7143143.svg)]https://doi.org/10.5281/zenodo.7143143) and place it into the repository's root directory.
+2. Download the `data` folder from [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7143143.svg)](https://doi.org/10.5281/zenodo.7143143) and place it into the repository's root directory.
 
 3. Follow the step by step given in the README file of the `scripts` folder.
 
