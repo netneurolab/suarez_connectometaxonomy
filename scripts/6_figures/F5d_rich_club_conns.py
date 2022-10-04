@@ -9,7 +9,6 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import os
-import re
 import numpy as np
 import pandas as pd
 import statsmodels.stats.multitest as multi
@@ -18,49 +17,22 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 #%%
+RESOLUTION = '100'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 COOR_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'coords')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_RES_DIR = os.path.join(PROJ_DIR, 'raw_results', 'rich_club')
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
 #%%
-data = pd.read_csv(os.path.join(INFO_DIR, 'list.csv'), dtype={'Name':str})
-C = (200*199)/2
-
-#%%
-filenames  = []
-names      = []
-order      = []
-superorder = []
-family     = []
-conn = []
-for file in os.listdir(CONN_DIR):
-    filename = file.split('.')[0]
-    name = ''.join([i for i in filename if not i.isdigit()])
-    name = ' '.join(re.findall('[A-Z][^A-Z]*', name))
-
-    conn.append(np.load(os.path.join(CONN_DIR, file)))
-
-    names.append(name)
-    filenames.append(filename)
-    order.append(str(data.loc[data.Name == name]['Order'].values[0]))
-    superorder.append(str(data.loc[data.Name == name]['Superorder'].values[0]))
-    family.append(str(data.loc[data.Name == name]['Family'].values[0]))
-
-filenames  = np.array(filenames)
-names      = np.array(names)
-order      = np.array(order)
-superorder = np.array(superorder)
-family     = np.array(family)
-conn = np.dstack(conn)
+df_info = pd.read_csv(os.path.join(INFO_DIR, 'info.csv'), dtype={'Name':str})
 
 #%%
 order_labels = [
                 'Chiroptera',
                 'Rodentia',
-                'Artiodactyla',
+                'Cetartiodactyla',
                 'Carnivora',
                 'Perissodactyla',
                 'Primates',
@@ -68,9 +40,9 @@ order_labels = [
 
 COLORS = {k:v for k,v in zip(order_labels, sns.color_palette("Set3", len(order_labels)))}
 
-
 #%%
-idx = np.tril_indices(200, -1)
+N = 2*int(RESOLUTION)
+idx = np.tril_indices(N, -1)
 n_modules = []
 hub_nodes       = []
 # provincial_hubs = []
@@ -81,10 +53,10 @@ feeder_conns    = []
 local_conns     = []
 total_conns     = []
 max_rc_coeff = []
-for i, filename in enumerate(filenames):
+for i, filename in enumerate(df_info.Filename):
 
     # identification and classification of hubs
-    deg = np.load(os.path.join(RAW_RES_DIR, f'{filename}_deg.npy'))
+    deg = np.load(os.path.join(RAW_DIR, 'rich_club', f'{filename}_deg.npy'))
     # pi  = np.load(os.path.join(RAW_RES_DIR, f'{filename}_participation_idx.npy'))
 
     mean_deg = np.mean(deg)
@@ -99,15 +71,15 @@ for i, filename in enumerate(filenames):
 
 
     # rich-club coefficient as a function of k
-    knodes = np.load(os.path.join(RAW_RES_DIR, f'{filename}_knodes.npy'))
-    phi = np.load(os.path.join(RAW_RES_DIR, f'{filename}_phi.npy'))
-    phi_nulls = np.load(os.path.join(RAW_RES_DIR, f'{filename}_phi_nulls.npy'))
+    knodes = np.load(os.path.join(RAW_DIR, 'rich_club', f'{filename}_knodes.npy'))
+    phi = np.load(os.path.join(RAW_DIR, 'rich_club', f'{filename}_phi.npy'))
+    phi_nulls = np.load(os.path.join(RAW_DIR, 'rich_club', f'{filename}_phi_nulls.npy'))
     phi_random = np.mean(phi_nulls, axis=0)
     phi_norm = phi/phi_random
 
 
     # significance
-    pvals = np.load(os.path.join(RAW_RES_DIR, f'{filename}_unc_pvals.npy'))
+    pvals = np.load(os.path.join(RAW_DIR, 'rich_club', f'{filename}_unc_pvals.npy'))
     _, cpvals = multi.fdrcorrection(pvals[phi_norm > 1.00], alpha=0.05, method='indep', is_sorted=False)
     pvals[phi_norm > 1.00] = cpvals
 
@@ -133,7 +105,7 @@ for i, filename in enumerate(filenames):
     max_rc_coeff.append(max_phi)
 
     # identify nodes in k-core
-    nodes_kcore = np.zeros((200))
+    nodes_kcore = np.zeros((N))
     nodes_kcore[np.where(deg > k)[0]] = 1
     nodes_kcore = nodes_kcore.astype(int).astype(bool)
 
@@ -142,30 +114,31 @@ for i, filename in enumerate(filenames):
     rich_club_nodes.append(np.sum(rc_nodes.astype(int)))
 
     # hubs: provincial and connector
-    cis = np.load(os.path.join(RAW_RES_DIR, f'{filename}_communities.npy'))
+    cis = np.load(os.path.join(RAW_DIR, 'rich_club', f'{filename}_communities.npy'))
     n_modules.append(len(np.unique(cis)))
     hub_nodes.append(np.sum(hubs.astype(int)))
     # provincial_hubs.append(np.sum(provincial.astype(int)))
     # connector_hubs.append(np.sum(connector.astype(int)))
 
     # rich-club connections
-    conn_ = conn[:,:,i][np.ix_(np.where(rc_nodes)[0],np.where(rc_nodes)[0])]
+    conn = np.load(os.path.join(CONN_DIR, f'{filename}.npy'))
+    conn_ = conn[np.ix_(np.where(rc_nodes)[0],np.where(rc_nodes)[0])]
     rich_club_conns.append(np.sum(conn_[np.tril_indices_from(conn_, -1)]))
 
     # feeder connections
-    conn_ = conn[:,:,i][np.ix_(np.where(rc_nodes)[0],np.where(np.logical_not(rc_nodes))[0])]
+    conn_ = conn[np.ix_(np.where(rc_nodes)[0],np.where(np.logical_not(rc_nodes))[0])]
     feeder_conns.append(np.sum(conn_))
 
     # local connections
-    conn_ = conn[:,:,i][np.ix_(np.where(np.logical_not(rc_nodes))[0],np.where(np.logical_not(rc_nodes))[0])]
+    conn_ = conn[np.ix_(np.where(np.logical_not(rc_nodes))[0],np.where(np.logical_not(rc_nodes))[0])]
     local_conns.append(np.sum(conn_[np.tril_indices_from(conn_, -1)]))
 
-    total_conns.append(np.sum(conn[:,:,i][np.tril_indices(200,-1)]))
+    total_conns.append(np.sum(conn[np.tril_indices(N,-1)]))
 
 
 #%%
-df_rc = pd.DataFrame(np.column_stack([np.arange(225), names, filenames, order, max_rc_coeff]), \
-                       columns=['Id', 'Name', 'Filename', 'Order', 'RC'])
+df_rc = df_info.copy()
+df_rc['RC'] = max_rc_coeff
 df_rc = df_rc.astype({'RC': float})
 df_rc = pd.concat([df_rc.loc[df_rc['Order'] == o] for o in order_labels]).reset_index(drop=True)
 
@@ -186,8 +159,10 @@ plt.show()
 plt.close()
 
 #%%
-df_conns = pd.DataFrame(np.column_stack([np.arange(225), names, filenames, order, rich_club_conns, feeder_conns, local_conns, total_conns]), \
-                        columns=['Id', 'Name', 'Filename', 'Order', 'rich club', 'feeder', 'local', 'total'])
+df_conns = pd.DataFrame(np.column_stack([rich_club_conns, feeder_conns, local_conns, total_conns]), \
+                        columns=['rich club', 'feeder', 'local', 'total'])
+
+df_conns = pd.concat((df_info, df_conns), axis=1)
 
 df_conns = df_conns.astype({'rich club': float})
 df_conns = df_conns.astype({'feeder': float})
@@ -196,7 +171,6 @@ df_conns = df_conns.astype({'total': float})
 
 df_conns = pd.concat([df_conns.loc[df_conns['Order'] == o] for o in order_labels]).reset_index(drop=True)
 
-#%%
 df_conns['rich club'] = df_conns['rich club']/df_conns['total']
 df_conns['feeder']    = df_conns['feeder']/df_conns['total']
 df_conns['local']     = df_conns['local']/df_conns['total']
@@ -227,11 +201,10 @@ plt.close()
 
 
 #%%
-df_modules = pd.DataFrame(np.column_stack([np.arange(225), names, filenames, order, n_modules]), \
-                       columns=['Id', 'Name', 'Filenames',  'Order', 'modules'])
+df_modules = df_info.copy()
+df_modules['modules'] = n_modules
 df_modules = df_modules.astype({'modules': int})
 df_modules = pd.concat([df_modules.loc[df_modules['Order'] == o] for o in order_labels]).reset_index(drop=True)
-
 
 sns.set(style="ticks", font_scale=2.0)
 fig, ax = plt.subplots(1,1,figsize=(16,5))

@@ -9,35 +9,24 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import os
-import re
 import time
-import itertools as itr
 
 import numpy as np
-import pandas as pd
 import bct
 from scipy import stats
-import statsmodels.stats.multitest as multi
-from scipy.spatial.distance import cdist
 
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator, MaxNLocator
-import seaborn as sns
-
-from rnns import topology
-
-from netneurotools import modularity, cluster
+from netneurotools import modularity
 
 import multiprocessing as mp
 
-
 #%%
-PROJ_DIR = 'E:/P9_EIG'
+RESOLUTION = '100'
+PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 COOR_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami_v2', 'coords')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_RES_DIR = os.path.join(PROJ_DIR, 'raw_results')
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
 RND_SEED = 1234
 
@@ -49,7 +38,7 @@ def participation_index(file):
         print(f'-------{file}--------')
 
         filename = file.split('.')[0]
-        if not os.path.exists(os.path.join(RAW_RES_DIR, 'rich_club', f'{filename}_deg.npy')):
+        if not os.path.exists(os.path.join(RAW_DIR, 'rich_club', f'{filename}_deg.npy')):
 
             # binary connectivity matrix
             w = np.load(os.path.join(CONN_DIR, file)).astype(bool).astype(int)
@@ -74,10 +63,10 @@ def participation_index(file):
 
                 pi.append(1-np.sum(ratio))
 
-            np.save(os.path.join(RAW_RES_DIR, 'rich_club', f'{filename}_deg'), ki)
-            np.save(os.path.join(RAW_RES_DIR, 'rich_club', f'{filename}_participation_idx'), pi)
-            np.save(os.path.join(RAW_RES_DIR, 'rich_club', f'{filename}_modularity_scores'), q)
-            np.save(os.path.join(RAW_RES_DIR, 'rich_club', f'{filename}_communities'), ci)
+            np.save(os.path.join(RAW_DIR, 'rich_club', f'{filename}_deg'), ki)
+            np.save(os.path.join(RAW_DIR, 'rich_club', f'{filename}_participation_idx'), pi)
+            np.save(os.path.join(RAW_DIR, 'rich_club', f'{filename}_modularity_scores'), q)
+            np.save(os.path.join(RAW_DIR, 'rich_club', f'{filename}_communities'), ci)
 
 
 #%% ---------------------------------------------------------------------------
@@ -95,7 +84,7 @@ def rich_club(file):
     rc, knodes, _ = bct.core.rich_club_bu(G)
 
     # rich club coefficient nulls
-    random = np.load(os.path.join(RAW_RES_DIR, 'nulls', f'nulls_{filename}.npy')).astype(bool).astype(int)
+    random = np.load(os.path.join(RAW_DIR, 'nulls', f'nulls_{filename}.npy')).astype(bool).astype(int)
     rc_nulls = []
     for i in range(random.shape[-1]):
         rc_, _, _ = bct.core.rich_club_bu(random[:,:,i])
@@ -113,12 +102,12 @@ def rich_club(file):
         upper = len(np.where(zrc_tmp[1:,k] > zrc_tmp[0,k])[0])
         p_vals.append(upper/len(rc_nulls))
 
-    np.save(os.path.join(RAW_RES_DIR, 'rich_club', f'{filename}_phi'), rc)
-    np.save(os.path.join(RAW_RES_DIR, 'rich_club', f'{filename}_knodes'), knodes)
-    np.save(os.path.join(RAW_RES_DIR, 'rich_club', f'{filename}_phi_nulls'), rc_nulls)
-    np.save(os.path.join(RAW_RES_DIR, 'rich_club', f'{filename}_phi_random'), rc_random)
-    np.save(os.path.join(RAW_RES_DIR, 'rich_club', f'{filename}_phi_norm'), rc_norm)
-    np.save(os.path.join(RAW_RES_DIR, 'rich_club', f'{filename}_unc_pvals'), p_vals)
+    np.save(os.path.join(RAW_DIR, 'rich_club', f'{filename}_phi'), rc)
+    np.save(os.path.join(RAW_DIR, 'rich_club', f'{filename}_knodes'), knodes)
+    np.save(os.path.join(RAW_DIR, 'rich_club', f'{filename}_phi_nulls'), rc_nulls)
+    np.save(os.path.join(RAW_DIR, 'rich_club', f'{filename}_phi_random'), rc_random)
+    np.save(os.path.join(RAW_DIR, 'rich_club', f'{filename}_phi_norm'), rc_norm)
+    np.save(os.path.join(RAW_DIR, 'rich_club', f'{filename}_unc_pvals'), p_vals)
 
 
 #%%

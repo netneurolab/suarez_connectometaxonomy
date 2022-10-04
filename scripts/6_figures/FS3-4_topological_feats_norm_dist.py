@@ -9,40 +9,29 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import os
-import re
-import itertools as itr
 import numpy as np
 import pandas as pd
 
-from scipy import stats
-from scipy.spatial.distance import (pdist,squareform)
-
-from sklearn.preprocessing import MinMaxScaler
-
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator, MaxNLocator
 
 import seaborn as sns
 
-from netneurotools import plotting
-
-
 #%%
+RESOLUTION = '100'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
 #%%
 df = pd.read_csv(os.path.join(RAW_DIR, 'df_props.csv'))
-C = (200*199)/2 # total number of connections
 
 #%%
 order_labels = [
                 'Chiroptera',
                 'Rodentia',
-                'Artiodactyla',
+                'Cetartiodactyla',
                 'Carnivora',
                 'Perissodactyla',
                 'Primates',
@@ -99,7 +88,7 @@ for i, p in enumerate(include_properties):
     plot = sns.boxplot(data=df, x='Order', y=p,
                             palette=sns.color_palette('Set3', len(order_labels)),
                             width=0.5,
-                          # hue='model',
+                            # hue='model',
                             showfliers=False
                           )
 

@@ -15,9 +15,7 @@ import pandas as pd
 from scipy import stats
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator,AutoMinorLocator
 import seaborn as sns
-
 
 #%%
 RESOLUTION = '100'
@@ -26,7 +24,6 @@ DATA_DIR = os.path.join(PROJ_DIR, 'data')
 CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
 RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
-
 
 #%%
 info = pd.read_csv(os.path.join(INFO_DIR, 'info.csv'))
@@ -69,7 +66,7 @@ def welch_test(x,y):
 
     return es, pval
 
-def fig3(distance, title, flag):
+def get_effect_size(distance, flag):
 
     dist = distance.copy()
 
@@ -100,57 +97,7 @@ def fig3(distance, title, flag):
     es_welch, pval_welch = welch_test(df_between['distance'].astype(float).values, df_within['distance'].astype(float).values)
     es_u, pval_u = u_test(df_between['distance'].astype(float).values, df_within['distance'].astype(float).values)
 
-    # kde plot
-    within = df.loc[df['label'] == 'within',:]
-    between = df.loc[df['label'] == 'between',:]
-
-    sns.set(style="ticks", font_scale=1.5)
-    fig, ax = plt.subplots(1,1, figsize=(4,4))
-
-    sns.histplot(x=within['distance'],
-                 fill=True,
-                 ax=ax,
-                 label='within',
-                 stat='probability',
-                 color='#d379b1',
-                 # cut=0,
-                 # clip=(0, 1.0)
-                 )
-
-    sns.histplot(x=between['distance'],
-                 fill=True,
-                 ax=ax,
-                 label='between',
-                 stat='probability',
-                  color='#7f2062',
-                 # cut=0,
-                 # clip=(0, 1.0)
-                 )
-
-    ax.yaxis.set_minor_locator(MultipleLocator(0.025))
-    ax.yaxis.set_major_locator(MultipleLocator(0.05))
-    ax.xaxis.set_minor_locator(MultipleLocator(0.25))
-    ax.xaxis.set_major_locator(MultipleLocator(0.5))
-    ax.set_ylim(0,0.15) # 0, 0.15
-    ax.set_xlim(0,1)
-
-    # plt.legend()
-    sns.despine(offset=10, trim=False)
-    # fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'intra_vs_inter_{title}.eps'), transparent=True, bbox_inches='tight', dpi=300)
-    plt.show()
-    plt.close()
-
-
-    print(f'Welch t-test - effect size = {es_welch} and pval: {pval_welch}')
-    print(f'\tmean intra: {np.mean(within.distance)}')
-    print(f'\tmean inter: {np.mean(between.distance)}')
-
-    print(f'Wil. Mann. Whithn. U test - effect size = {es_u} and pval: {pval_u}')
-    print(f'\tmedian intra: {np.median(within.distance)}')
-    print(f'\tmedian inter: {np.median(between.distance)}')
-
-    print(f'\n\tvariance intra: {np.var(within.distance)}')
-    print(f'\tvariance inter: {np.var(between.distance)}')
+    return es_welch, es_u
 
 
 #%%
@@ -162,35 +109,82 @@ def get_name_flag():
     for name in np.unique(info.Name):
         idx_name = np.where(info.Name == name)[0]
         name_flag[idx_name[0]] = 1
-
     return name_flag
 
-#%%
+    #%%
 distances = [
+            'spectral_distance',
             'topological_distance',
-            'top_bin_dist',
-            'top_wei_dist',
-            'top_local_dist',
-            'top_global_dist',
-            'top_local_bin_dist',
-            'top_local_wei_dist',
-            'top_global_bin_dist',
-            'top_global_wei_dist',
             ]
 
-
 for distance in distances:
-
+    
     print(f'\n----------- average {distance} ------------')
-    avg_dist = np.load(os.path.join(RAW_DIR, f'avg_{distance}.npy'))
+    distance = f'avg_{distance}'
+    avg_dist = np.load(os.path.join(RAW_DIR, f'{distance}.npy'))
     order_flag = get_order_flag()
     name_flag  = get_name_flag()
     flag = np.logical_and(order_flag, name_flag)
-
-    fig3(avg_dist, f'avg_{distance}', flag)
+    es_welch, es_u = get_effect_size(avg_dist, flag)
 
     # print(f'\n----------- {distance} ------------')
     # dist = np.load(os.path.join(RAW_DIR, f'{distance}.npy'))
     # flag = get_order_flag()
+    # es_welch, es_u = get_effect_size(dist[np.ix_(flag==1,flag==1)], flag)
+    
+    es_welch_nulls = np.load(os.path.join(RAW_DIR, 'label_perm', f'label_perm_effect_size_welch_{distance}.npy'))
+    mean_welch = np.mean(np.hstack((es_welch_nulls.copy(), es_welch.copy())))
+    std_welch = np.std(np.hstack((es_welch_nulls.copy(), es_welch.copy())))
+    
+    es_welch = (es_welch-mean_welch)/std_welch
+    es_welch_nulls = (es_welch_nulls-mean_welch)/std_welch
+    pval_welch = (np.count_nonzero(np.abs(es_welch) <= np.abs(es_welch_nulls))+1)/(len(es_welch_nulls)+1)
 
-    # fig3(dist[np.ix_(flag==1,flag==1)], distance, flag)
+
+    es_u_nulls = np.load(os.path.join(RAW_DIR, 'label_perm', f'label_perm_effect_size_u_{distance}.npy'))
+    mean_u = np.mean(np.hstack((es_u_nulls.copy(), es_u.copy())))
+    std_u = np.std(np.hstack((es_u_nulls.copy(), es_u.copy())))
+
+    es_u = (es_u-mean_u)/std_u  
+    es_u_nulls = (es_u_nulls-mean_u)/std_u
+    pval_u = (np.count_nonzero(np.abs(es_u) <= np.abs(es_u_nulls))+1)/(len(es_u_nulls)+1)
+    
+    
+    # figure
+    sns.set(style="ticks", font_scale=2.0)
+    fig, ax = plt.subplots(1,2, figsize=(15,5))
+    ax = ax.ravel()
+    
+    # Welch Student's T test
+    sns.kdeplot(x=es_welch_nulls,
+                  fill=True,
+                  ax=ax[0],
+                  label='null',
+                  color='darkcyan'
+                  )
+    
+    ax[0].axvline(x=es_welch, color='dodgerblue', ls='--', label=f'empirical pval={np.round(pval_welch,3)}')
+    
+    # ax[0].set_xlim(-10,30)
+    # ax[0].legend()
+    ax[0].set_xlabel('effect size - Welch T-test')
+    
+    # Mann–Whitney U test
+    sns.kdeplot(x=es_u_nulls,
+                  fill=True,
+                  ax=ax[1],
+                  label='null',
+                  color='darkcyan'
+                  )
+    
+    ax[1].axvline(x=es_u, color='dodgerblue', ls='--', label=f'empirical pval={np.round(pval_u,3)}')
+
+    # ax[1].set_xlim(-10,30)
+    # ax[1].legend()
+    ax[1].set_xlabel('effect size - Mann-Whitney U test')
+     
+    sns.despine(offset=10, trim=False)
+    # fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'label_permutation_{distance}.eps'), transparent=True, bbox_inches='tight', dpi=300)
+    plt.show()
+    plt.close()
+

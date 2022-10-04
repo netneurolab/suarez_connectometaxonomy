@@ -18,105 +18,28 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 import seaborn as sns
 
-from netneurotools import plotting
 
 #%%
-RESOLUTION = '100'
+RESOLUTION = '50'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
 CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
 RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
+
 #%%
 info = pd.read_csv(os.path.join(INFO_DIR, 'info.csv'))
 
 #%%
-order_labels = {
-                'Chiroptera':1,
-                'Rodentia':2,
-                'Cetartiodactyla':3,
-                'Carnivora':4,
-                'Perissodactyla':5,
-                'Primates':6,
-                }
-
-#%% distance between orders
-def fig2_pa(distance, title, flag):
-
-    int_communities = np.array([order_labels[o] for o in info.Order[flag==1]])
-
-    distance_ = distance.copy()
-    distance_ = (distance_-np.min(distance_))/(np.max(distance_)-np.min(distance_))
-
-    # plot
-    sns.set(style="ticks", font_scale=2.0)
-    ax = plotting.plot_mod_heatmap(data=distance_,
-                              communities=int_communities,
-                              inds=None,
-                              edgecolor='white',
-                              ax=None,
-                              figsize=(2*6.4, 2*4.8),
-                              xlabels=order_labels.keys(),
-                              ylabels=order_labels.keys(),
-                              xlabelrotation=90,
-                              ylabelrotation=0,
-                              cbar=True,
-                              cmap=sns.cubehelix_palette(as_cmap=True),
-                              vmin=0.0,
-                              vmax=1.0,
-                              rasterized=True
-                              )
-    # ax.figure.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'{title}.eps'), transparent=True, bbox_inches='tight', dpi=300)
-
-#%% summary distance between orders
-def fig2_pb(distance, title, flag):
-
-    distance_ = distance.copy()
-    distance_ = (distance_-np.min(distance_))/(np.max(distance_)-np.min(distance_))
-
-    avg_distance = np.zeros((len(order_labels),len(order_labels)))
-    for cluster_a,cluster_b in list(itr.combinations_with_replacement(order_labels.keys(), 2)):
-
-        idx_a = np.where(info.Order[flag==1] == cluster_a)[0]
-        idx_b = np.where(info.Order[flag==1] == cluster_b)[0]
-
-        i = order_labels[cluster_a]-1
-        j = order_labels[cluster_b]-1
-
-        avg_distance[i,j] = np.median(distance_[np.ix_(idx_a, idx_b)])
-        avg_distance[j,i] = avg_distance[i,j]
-
-
-    # global scaling
-    avg_distance = (avg_distance-np.min(avg_distance))/(np.max(avg_distance)-np.min(avg_distance))
-
-    mask = np.zeros_like(avg_distance).astype(bool)
-    mask[np.tril_indices_from(mask, -1)] = True
-
-    # plot
-    sns.set(style="ticks", font_scale=2.0)
-    fig = plt.figure(figsize=(12,10))
-    ax = plt.subplot(111)
-    sns.heatmap(avg_distance,
-                square=True,
-                annot=True,
-                xticklabels=order_labels.keys(),
-                yticklabels=order_labels.keys(),
-                annot_kws={'fontsize':20},
-                cmap=sns.cubehelix_palette(as_cmap=True),
-                linewidth=0.7,
-                linecolor='white',
-                cbar_kws={"shrink":0.985},
-                # rasterized=True,
-                mask=mask
-                )
-
-    plt.xticks(rotation=45)
-    # fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'median_{title}.eps'), transparent=True, bbox_inches='tight', dpi=300)
-    plt.show()
-    plt.close()
-
+order_labels = [
+                'Chiroptera',
+                'Rodentia',
+                'Cetartiodactyla',
+                'Carnivora',
+                'Perissodactyla',
+                'Primates',
+               ]
 
 #%%
 def u_test(x,y):
@@ -146,7 +69,7 @@ def welch_test(x,y):
 
     return es, pval
 
-def fig2_pc(distance, title, flag):
+def fig3(distance, title, flag):
 
     dist = distance.copy()
 
@@ -181,18 +104,18 @@ def fig2_pc(distance, title, flag):
     within = df.loc[df['label'] == 'within',:]
     between = df.loc[df['label'] == 'between',:]
 
-    sns.set(style="ticks", font_scale=2.0)
-    fig, ax = plt.subplots(1,1, figsize=(5,5))
-    
+    sns.set(style="ticks", font_scale=1.5)
+    fig, ax = plt.subplots(1,1, figsize=(4,4))
+
     sns.histplot(x=within['distance'],
-             fill=True,
-             ax=ax,
-             label='within',
-             stat='probability',
-             color='#d379b1',
-             # cut=0,
-             # clip=(0, 1.0)
-             )
+                 fill=True,
+                 ax=ax,
+                 label='within',
+                 stat='probability',
+                 color='#d379b1',
+                 # cut=0,
+                 # clip=(0, 1.0)
+                 )
 
     sns.histplot(x=between['distance'],
                  fill=True,
@@ -208,8 +131,9 @@ def fig2_pc(distance, title, flag):
     ax.yaxis.set_major_locator(MultipleLocator(0.05))
     ax.xaxis.set_minor_locator(MultipleLocator(0.25))
     ax.xaxis.set_major_locator(MultipleLocator(0.5))
-    ax.set_xlim(0, 1.0)
-    ax.set_ylim(0, 0.15)
+    ax.set_ylim(0,0.15) # 0, 0.15
+    ax.set_xlim(0,1)
+
     # plt.legend()
     sns.despine(offset=10, trim=False)
     # fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'intra_vs_inter_{title}.eps'), transparent=True, bbox_inches='tight', dpi=300)
@@ -217,21 +141,21 @@ def fig2_pc(distance, title, flag):
     plt.close()
 
 
-    print(f'\nWelch t-test - effect size = {es_welch} and pval: {pval_welch}')
+    print(f'Welch t-test - effect size = {es_welch} and pval: {pval_welch}')
     print(f'\tmean intra: {np.mean(within.distance)}')
     print(f'\tmean inter: {np.mean(between.distance)}')
 
-    print(f'\nWil. Mann. Whithn. U test - effect size = {es_u} and pval: {pval_u}')
+    print(f'Wil. Mann. Whithn. U test - effect size = {es_u} and pval: {pval_u}')
     print(f'\tmedian intra: {np.median(within.distance)}')
     print(f'\tmedian inter: {np.median(between.distance)}')
 
-    print(f'variance intra: {np.var(within.distance)}')
-    print(f'variance inter: {np.var(between.distance)}')
+    print(f'\n\tvariance intra: {np.var(within.distance)}')
+    print(f'\tvariance inter: {np.var(between.distance)}')
 
 
 #%%
 def get_order_flag():
-    return np.array([1 if label in order_labels.keys() else 0 for label in info.Order])
+    return np.array([1 if label in order_labels else 0 for label in info.Order])
 
 def get_name_flag():
     name_flag = np.zeros_like(info.Id, dtype=int)
@@ -243,28 +167,30 @@ def get_name_flag():
 
 #%%
 distances = [
-            'spectral_distance',
             'topological_distance',
+            'top_bin_dist',
+            'top_wei_dist',
+            'top_local_dist',
+            'top_global_dist',
+            'top_local_bin_dist',
+            'top_local_wei_dist',
+            'top_global_bin_dist',
+            'top_global_wei_dist',
             ]
 
 
 for distance in distances:
-    
+
     print(f'\n----------- average {distance} ------------')
     avg_dist = np.load(os.path.join(RAW_DIR, f'avg_{distance}.npy'))
     order_flag = get_order_flag()
     name_flag  = get_name_flag()
     flag = np.logical_and(order_flag, name_flag)
 
-    fig2_pa(avg_dist, f'avg_{distance}', flag)
-    fig2_pb(avg_dist, f'avg_{distance}', flag)
-    fig2_pc(avg_dist, f'avg_{distance}', flag)
+    fig3(avg_dist, f'avg_{distance}', flag)
 
     # print(f'\n----------- {distance} ------------')
     # dist = np.load(os.path.join(RAW_DIR, f'{distance}.npy'))
     # flag = get_order_flag()
 
-    # fig2_pa(dist[np.ix_(flag==1,flag==1)], distance, flag)
-    # fig2_pb(dist[np.ix_(flag==1,flag==1)], distance, flag)
-    # fig2_pc(dist[np.ix_(flag==1,flag==1)], distance, flag)
-
+    # fig3(dist[np.ix_(flag==1,flag==1)], distance, flag)

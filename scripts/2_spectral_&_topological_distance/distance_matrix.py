@@ -8,40 +8,31 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import os
-import re
-import itertools as itr
 
 import numpy as np
 import pandas as pd
 
 from scipy import stats
 from scipy.spatial.distance import (pdist,squareform)
-from sklearn.preprocessing import (MinMaxScaler, LabelEncoder)
-
-from netneurotools import plotting
-
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-from rnns import topology
-import curve_fitting as cf
 
 #%%
+RESOLUTION = '100'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
 #%% topological distance
 def distance(df, name, include_properties=None, metric='cosine'):
 
     if include_properties is not None: X = df[include_properties].values
     else: X = df.values
-
+        
     X = stats.zscore(X, axis=0)
     distance = squareform(pdist(X, metric=metric), force='tomatrix')
     np.save(os.path.join(RAW_DIR, name), distance)
+    
 
 #%%
 local_bin = [
@@ -87,24 +78,29 @@ wei_ = global_wei + local_wei
 all_ = local_ + global_
 
 #%% topological distance
-df_props = pd.read_csv(os.path.join(RAW_DIR, 'df_props.csv'))
+df_top = pd.read_csv(os.path.join(RAW_DIR, 'df_props.csv'))
 
 options = {
-           'topological_distance':all_,
-           'top_bin_dist':bin_,
-           'top_wei_dist':wei_,
-           # 'top_local_dist':local_,
-           # 'top_global_dist':global_,
-           'top_local_bin_dist':local_bin,
-           'top_global_bin_dist':global_bin,
-           'top_local_wei_dist':local_wei,
-           'top_global_wei_dist':global_wei
-           }
+            'topological_distance':all_,
+            'top_bin_dist':bin_,
+            'top_wei_dist':wei_,
+            'top_local_dist':local_,
+            'top_global_dist':global_,
+            'top_local_bin_dist':local_bin,
+            'top_global_bin_dist':global_bin,
+            'top_local_wei_dist':local_wei,
+            'top_global_wei_dist':global_wei 
+            }
 
 for k,v in options.items():
-    distance(df_props.copy(), k, v)
+    X = distance(df_top.copy(), k, v, metric='cosine')
 
+#%% spectral distance with eig
+N = 2*int(RESOLUTION)
+df_eig = pd.read_csv(os.path.join(RAW_DIR, 'eig.csv'))
+distance(df_eig.copy(), 'spectral_distance', df_eig.columns[-N:])
 
-#%% spectral distance
+#%% spectral distance with eig_kde
+N = 2*int(RESOLUTION)*10
 df_eig = pd.read_csv(os.path.join(RAW_DIR, 'eig_kde.csv'))
-distance(df_eig.copy(), 'spectral_distance', df_eig.columns[-2000:])
+distance(df_eig.copy(), 'spectral_distance', df_eig.columns[-N:])

@@ -9,80 +9,34 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import os
-import re
-import itertools as itr
+
 import numpy as np
 import pandas as pd
 
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
-import seaborn as sns
-
-from scipy import stats
-from scipy.spatial.distance import (pdist,squareform)
-from scipy.cluster.hierarchy import dendrogram, linkage
-
-from sklearn.preprocessing import (StandardScaler,MinMaxScaler,LabelEncoder)
-
 import eigenfunctions as fn
 
-
 #%%
+RESOLUTION = '100'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results')
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
+
+try:
+    os.mkdir(RAW_DIR)
+except:
+    pass
 
 #%%
-data = pd.read_csv(os.path.join(INFO_DIR, 'list.csv'), dtype={'Name':str})
-
-#%%
-filenames = []
-names = []
-order = []
-superorder = []
-family = []
-conn = []
-for file in os.listdir(CONN_DIR):
-    filename = file.split('.')[0]
-    name = ''.join([i for i in filename if not i.isdigit()])
-    name = ' '.join(re.findall('[A-Z][^A-Z]*', name))
-
-    conn.append(np.load(os.path.join(CONN_DIR, file)))
-
-    names.append(name)
-    filenames.append(filename)
-
-    try:
-        order.append(str(data.loc[data.Name == name]['Order'].values[0]))
-        superorder.append(str(data.loc[data.Name == name]['Superorder'].values[0]))
-        family.append(str(data.loc[data.Name == name]['Family'].values[0]))
-    except:
-        order.append('')
-        superorder.append('')
-        family.append('')
-
-filenames = np.array(filenames)
-names = np.array(names)
-order = np.array(order)
-superorder = np.array(superorder)
-family = np.array(family)
-conn = np.dstack(conn)
-
-#%%
-df_info = pd.DataFrame(data=np.column_stack([np.arange(len(filenames)), names, filenames, order, superorder, family]),
-                       columns=['Id', 'Name', 'Filename', 'Order', 'Superorder', 'Family'],
-                       index=None)
-
-df_info.to_csv(os.path.join(INFO_DIR, 'info.csv'), index=False)
+df_info = pd.read_csv(os.path.join(INFO_DIR, 'info.csv'), dtype={'Name':str})
 
 #%%
 eig = []
-for i, filename in enumerate(filenames):
-
+for file in os.listdir(CONN_DIR):
+    
     # weighted network
-    wei_conn = conn[:,:,i]
+    wei_conn = np.load(os.path.join(CONN_DIR, file)) 
 
     # binary network
     bin_conn = wei_conn.astype(bool).astype(int)
@@ -95,27 +49,19 @@ for i, filename in enumerate(filenames):
 
     # Laplacian eigenspectrum
     ew = np.real(fn.eigen_spectrum(l))
-    ew_diff = [ew[i+1]-ew[i] for i in range(0, len(ew)-1)]
-
     eig.append(ew)
 
-#%% eigen spectra
-eig = np.array(eig)
+
+# %% eigen spectra
+eig = np.sort(np.array(eig), axis=1)
 df_eig = pd.DataFrame(eig, columns=[f'eig_{i}' for i in range(eig.shape[1])], dtype=float)
 df_eig = pd.concat([df_info, df_eig], axis=1)
 df_eig.to_csv(os.path.join(RAW_DIR, 'eig.csv'), index=False)
 
 
-#%% kernel density approximation
+# %% kernel density approximation
 x_d, dx_d, eig_kde = fn.get_eigen_kde(eigenspectra=eig)
 eig_kde = np.array(eig_kde)
 df_eig_kde = pd.DataFrame(eig_kde, columns=[f'eig_kde_{i}' for i in range(eig_kde.shape[1])], dtype=float)
 df_eig_kde = pd.concat([df_info, df_eig_kde], axis=1)
 df_eig_kde.to_csv(os.path.join(RAW_DIR, 'eig_kde.csv'), index=False)
-
-
-#%% z-score kernel density approximation
-zeig_kde = stats.zscore(eig_kde, axis=0)
-df_zeig_kde = pd.DataFrame(zeig_kde, columns=[f'zeig_kde_{i}' for i in range(zeig_kde.shape[1])], dtype=float)
-df_zeig_kde = pd.concat([df_info, df_zeig_kde], axis=1)
-df_eig_kde.to_csv(os.path.join(RAW_DIR, 'zeig_kde.csv'), index=False)

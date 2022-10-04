@@ -18,51 +18,35 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 #%%
+RESOLUTION = '100'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_RES_DIR = os.path.join(PROJ_DIR, 'raw_results', 'rich_club')
-
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
 #%%
-data = pd.read_csv(os.path.join(INFO_DIR, 'list.csv'), dtype={'Name':str})
+info = pd.read_csv(os.path.join(INFO_DIR, 'info.csv'), dtype={'Name':str})
 
 #%%
 order_labels = [
                 'Chiroptera',
                 'Rodentia',
-                'Artiodactyla',
+                'Cetartiodactyla',
                 'Carnivora',
                 'Perissodactyla',
                 'Primates',
                 ]
 
 #%%
-order      = []
-filenames  = []
-names = []
-for file in os.listdir(CONN_DIR):
-    filename = file.split('.')[0]
-    name = ''.join([i for i in filename if not i.isdigit()])
-    name = ' '.join(re.findall('[A-Z][^A-Z]*', name))
-
-    names.append(name)
-    filenames.append(filename)
-    order.append(str(data.loc[data.Name == name]['Order'].values[0]))
-
-filenames  = np.array(filenames)
-order      = np.array(order)
-
-#%%
-flag = np.array([1 if label in order_labels else 0 for label in order])
+flag = np.array([1 if label in order_labels else 0 for label in info.Order])
 
 #%%
 df_conns = []
-for i, filename in enumerate(filenames[:]):
+for i, filename in enumerate(info['Filename']):
 
     conn = np.load(os.path.join(CONN_DIR, f'{filename}.npy')).astype(bool).astype(int)
-    communities = np.load(os.path.join(RAW_RES_DIR, f'{filename}_communities.npy'))
+    communities = np.load(os.path.join(RAW_DIR, 'rich_club', f'{filename}_communities.npy'))
 
     C = np.sum(conn[np.tril_indices_from(conn,-1)])
 
@@ -86,7 +70,7 @@ for i, filename in enumerate(filenames[:]):
     df_between = pd.DataFrame(np.column_stack([between,between_label]), columns=['conn_density','conn_type'] )
 
     df_ = pd.concat([df_within, df_between])
-    df_['Order'] = order[i]
+    df_['Order'] = info.Order.values[i]
 
     df_conns.append(df_)
 

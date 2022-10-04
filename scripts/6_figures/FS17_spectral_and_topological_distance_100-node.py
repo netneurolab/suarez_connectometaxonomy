@@ -21,12 +21,13 @@ import seaborn as sns
 from netneurotools import plotting
 
 #%%
-RESOLUTION = '100'
+RESOLUTION = '50'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
 CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
 RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
+
 
 #%%
 info = pd.read_csv(os.path.join(INFO_DIR, 'info.csv'))

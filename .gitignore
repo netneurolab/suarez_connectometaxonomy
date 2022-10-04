@@ -2,6 +2,8 @@
 data/
 TMP/
 raw_results/
+data.zip
+raw_results.zip
 
 # hidden files
 .DS_store

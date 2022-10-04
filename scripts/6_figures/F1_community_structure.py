@@ -19,22 +19,22 @@ import seaborn as sns
 from netneurotools import plotting
 
 #%%
+RESOLUTION = '100'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_RES_DIR = os.path.join(PROJ_DIR, 'raw_results', 'rich_club')
-
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
 #%%
-data = pd.read_csv(os.path.join(INFO_DIR, 'list.csv'), dtype={'Name':str})
+info = pd.read_csv(os.path.join(INFO_DIR, 'info.csv'), dtype={'Name':str})
 selected = pd.read_csv(os.path.join(INFO_DIR, 'selected.csv'), dtype={'Name':str})
 
 #%%
 order_labels = [
                 'Chiroptera',
                 'Rodentia',
-                'Artiodactyla',
+                'Cetartiodactyla',
                 'Carnivora',
                 'Perissodactyla',
                 'Primates',
@@ -51,7 +51,7 @@ for file in os.listdir(CONN_DIR):
 
     names.append(name)
     filenames.append(filename)
-    order.append(str(data.loc[data.Name == name]['Order'].values[0]))
+    order.append(str(info.loc[info.Filename == filename]['Order'].values[0]))
 
 filenames  = np.array(filenames)
 order      = np.array(order)
@@ -74,7 +74,7 @@ for order in order_labels:
         idx = np.where(filenames == filename)[0][0]
 
         conn = np.load(os.path.join(CONN_DIR, f'{filename}.npy')).astype(bool).astype(int)
-        communities = np.load(os.path.join(RAW_RES_DIR, f'{filename}_communities.npy'))
+        communities = np.load(os.path.join(RAW_DIR, 'rich_club', f'{filename}_communities.npy'))
 
         plotting.plot_mod_heatmap(data=0.5*conn,
                                   communities=communities,

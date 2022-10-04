@@ -8,30 +8,20 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import os
-import re
-import itertools as itr
 
 import numpy as np
 import pandas as pd
 
 from scipy import stats
 from scipy.spatial.distance import (pdist,squareform)
-from sklearn.preprocessing import (MinMaxScaler, LabelEncoder)
-
-from netneurotools import plotting
-
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-from rnns import topology
-import curve_fitting as cf
 
 #%%
+RESOLUTION = '100'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
 #%% topological distance
 def distance(df, name, include_properties=None, metric='cosine'):
@@ -41,7 +31,7 @@ def distance(df, name, include_properties=None, metric='cosine'):
 
     X = stats.zscore(X, axis=0)
     distance = squareform(pdist(X, metric=metric), force='tomatrix')
-    np.save(os.path.join(RAW_DIR, name), distance)
+    np.save(os.path.join(RAW_DIR, 'density_reg', name), distance)
 
 #%%
 local_bin = [
@@ -88,7 +78,7 @@ all_ = local_ + global_
 
 
 #%% topological distance -density regressed
-df_reg_props = pd.read_csv(os.path.join(RAW_DIR, 'df_props_reg.csv'))
+df_reg_props = pd.read_csv(os.path.join(RAW_DIR, 'density_reg', 'df_props_reg.csv'))
 
 options_reg = {
                'reg_topological_distance':all_,

@@ -19,11 +19,12 @@ import seaborn as sns
 
 
 #%%
+RESOLUTION = '100'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
 #%% network properties empirical networks
 include_properties = [
@@ -69,7 +70,7 @@ df['sw_wei'] = df['C_ratio_wei']/df['L_ratio_wei']
 order_labels = [
                 'Chiroptera',
                 'Rodentia',
-                'Artiodactyla',
+                'Cetartiodactyla',
                 'Carnivora',
                 'Perissodactyla',
                 'Primates',

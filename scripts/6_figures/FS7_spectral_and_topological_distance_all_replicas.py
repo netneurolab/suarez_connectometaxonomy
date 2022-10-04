@@ -28,6 +28,7 @@ CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
 RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
+
 #%%
 info = pd.read_csv(os.path.join(INFO_DIR, 'info.csv'))
 
@@ -250,21 +251,11 @@ distances = [
 
 for distance in distances:
     
-    print(f'\n----------- average {distance} ------------')
-    avg_dist = np.load(os.path.join(RAW_DIR, f'avg_{distance}.npy'))
-    order_flag = get_order_flag()
-    name_flag  = get_name_flag()
-    flag = np.logical_and(order_flag, name_flag)
+    print(f'\n----------- {distance} ------------')
+    dist = np.load(os.path.join(RAW_DIR, f'{distance}.npy'))
+    flag = get_order_flag()
 
-    fig2_pa(avg_dist, f'avg_{distance}', flag)
-    fig2_pb(avg_dist, f'avg_{distance}', flag)
-    fig2_pc(avg_dist, f'avg_{distance}', flag)
-
-    # print(f'\n----------- {distance} ------------')
-    # dist = np.load(os.path.join(RAW_DIR, f'{distance}.npy'))
-    # flag = get_order_flag()
-
-    # fig2_pa(dist[np.ix_(flag==1,flag==1)], distance, flag)
-    # fig2_pb(dist[np.ix_(flag==1,flag==1)], distance, flag)
-    # fig2_pc(dist[np.ix_(flag==1,flag==1)], distance, flag)
+    fig2_pa(dist[np.ix_(flag==1,flag==1)], distance, flag)
+    fig2_pb(dist[np.ix_(flag==1,flag==1)], distance, flag)
+    fig2_pc(dist[np.ix_(flag==1,flag==1)], distance, flag)
 

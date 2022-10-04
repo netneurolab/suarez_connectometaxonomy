@@ -47,7 +47,6 @@ def fig2_pa(distance, title, flag):
     int_communities = np.array([order_labels[o] for o in info.Order[flag==1]])
 
     distance_ = distance.copy()
-    distance_ = (distance_-np.min(distance_))/(np.max(distance_)-np.min(distance_))
 
     # plot
     sns.set(style="ticks", font_scale=2.0)
@@ -63,8 +62,6 @@ def fig2_pa(distance, title, flag):
                               ylabelrotation=0,
                               cbar=True,
                               cmap=sns.cubehelix_palette(as_cmap=True),
-                              vmin=0.0,
-                              vmax=1.0,
                               rasterized=True
                               )
     # ax.figure.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'{title}.eps'), transparent=True, bbox_inches='tight', dpi=300)
@@ -73,7 +70,6 @@ def fig2_pa(distance, title, flag):
 def fig2_pb(distance, title, flag):
 
     distance_ = distance.copy()
-    distance_ = (distance_-np.min(distance_))/(np.max(distance_)-np.min(distance_))
 
     avg_distance = np.zeros((len(order_labels),len(order_labels)))
     for cluster_a,cluster_b in list(itr.combinations_with_replacement(order_labels.keys(), 2)):
@@ -87,9 +83,6 @@ def fig2_pb(distance, title, flag):
         avg_distance[i,j] = np.median(distance_[np.ix_(idx_a, idx_b)])
         avg_distance[j,i] = avg_distance[i,j]
 
-
-    # global scaling
-    avg_distance = (avg_distance-np.min(avg_distance))/(np.max(avg_distance)-np.min(avg_distance))
 
     mask = np.zeros_like(avg_distance).astype(bool)
     mask[np.tril_indices_from(mask, -1)] = True
@@ -171,7 +164,6 @@ def fig2_pc(distance, title, flag):
 
     df = pd.concat([df_within, df_between])
     df['distance'] = df['distance'].astype(float)
-    df['distance'] = (df['distance']-np.min(df['distance']))/(np.max(df['distance'])-np.min(df['distance']))
 
     # ----------- statistical significance and effect size
     es_welch, pval_welch = welch_test(df_between['distance'].astype(float).values, df_within['distance'].astype(float).values)
@@ -206,10 +198,8 @@ def fig2_pc(distance, title, flag):
 
     ax.yaxis.set_minor_locator(MultipleLocator(0.025))
     ax.yaxis.set_major_locator(MultipleLocator(0.05))
-    ax.xaxis.set_minor_locator(MultipleLocator(0.25))
-    ax.xaxis.set_major_locator(MultipleLocator(0.5))
-    ax.set_xlim(0, 1.0)
-    ax.set_ylim(0, 0.15)
+    ax.set_xlim(0, 2.0)
+    # ax.set_ylim(0, 0.15)
     # plt.legend()
     sns.despine(offset=10, trim=False)
     # fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'intra_vs_inter_{title}.eps'), transparent=True, bbox_inches='tight', dpi=300)

@@ -42,7 +42,7 @@ for file in os.listdir(CONN_DIR):
     dist = cdist(coords, coords, metric='euclidean')
     max_length.append(np.max(dist))
     length.append(dist)
-
+    
 conn       = np.dstack(conn)
 length     = np.dstack(length)
 max_length = np.array(max_length)
@@ -90,24 +90,30 @@ order_labels = [
 df_dist = pd.concat([df_dist.loc[df_dist['Order'] == o] for o in order_labels]).reset_index(drop=True)
 COLORS = {k:v for k,v in zip(order_labels, sns.color_palette("Set3", len(order_labels)))} #, desat=0.45
 
-#%%
-df_ = pd.melt(df_dist, id_vars=['Id','Order'],
-              value_vars=['short', 'medium', 'long'],
-              var_name='conn_type',
-              value_name='conn_density')
+#%% connection length distribution
+idx = np.tril_indices(N, -1)
+order = df_info.Order
 
-sns.set(style="ticks", font_scale=2.0)
-fig, ax = plt.subplots(1,1,figsize=(15,5))
-sns.barplot(x="conn_type",
-            y='conn_density',
-            data=df_, hue="Order",
-            ax=ax,
-            palette=sns.color_palette('Set3', len(order_labels))
-            )
+sns.set(style="ticks", font_scale=2.0)  #palette='mako',
+fig, axs = plt.subplots(1,len(order_labels),figsize=(5*len(order_labels),5))
+axs = axs.ravel()
+for i in range(225):
 
-ax.get_legend().remove()
-ax.set_ylabel('avg. proportion of connections')
+    if order[i] in order_labels:
+        nonzero = np.nonzero(length[:,:,i][idx])
+        dist = length[:,:,i][idx][nonzero]
+        # dist = dist/np.max(dist)
+
+        sns.kdeplot(dist, color=COLORS[order[i]], ax=axs[np.where(np.array(order_labels) == order[i])[0][0]])
+        # axs[np.where(np.array(order_labels) == order[i])[0][0]].get_yaxis().set_visible(False)
+        axs[np.where(np.array(order_labels) == order[i])[0][0]].set_xlabel('connection length')
+        axs[np.where(np.array(order_labels) == order[i])[0][0]].set_xlim(0,150)
+        axs[np.where(np.array(order_labels) == order[i])[0][0]].set_title(order[i])
+        axs[np.where(np.array(order_labels) == order[i])[0][0]].set_ylim(0,0.04)
+
+
+# plt.legend()
 sns.despine(offset=10, trim=True)
-# fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', 'length_conns.eps'), transparent=True, bbox_inches='tight', dpi=300)
+# fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', 'conn_length_dist.eps'), transparent=True, bbox_inches='tight', dpi=300)
 plt.show()
 plt.close()

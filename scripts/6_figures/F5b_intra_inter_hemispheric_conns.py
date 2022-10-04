@@ -12,26 +12,26 @@ import os
 import pandas as pd
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator, MaxNLocator
+from matplotlib.ticker import MultipleLocator
 
 import seaborn as sns
 
 #%%
+RESOLUTION = '100'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
 #%%
 df = pd.read_csv(os.path.join(RAW_DIR, 'df_props.csv'))
-C = (200*199)/2
 
 #%%
 order_labels = [
                 'Chiroptera',
                 'Rodentia',
-                'Artiodactyla',
+                'Cetartiodactyla',
                 'Carnivora',
                 'Perissodactyla',
                 'Primates',
@@ -42,9 +42,6 @@ df = pd.concat([df.loc[df['Order'] == o] for o in order_labels]).reset_index(dro
 #%% intra vs inter connections
 df['interh_conns_p'] = df['interh_conns']/df['total_conns']
 df['intrah_conns_p'] = df['intrah_conns']/df['total_conns']
-
-# df['interh_conns_p'] = df['interh_conns']/C
-# df['intrah_conns_p'] = df['intrah_conns']/C
 
 df_ = df[['Id', 'Order', 'interh_conns_p', 'intrah_conns_p']]
 df_ = pd.melt(df_, id_vars=['Id','Order'],
@@ -76,9 +73,6 @@ plt.close()
 #%%
 df['lh_density'] = df['lh_conns']/df['total_conns']
 df['rh_density'] = df['rh_conns']/df['total_conns']
-
-# df['lh_density'] = df['lh_conns']/C
-# df['rh_density'] = df['rh_conns']/C
 
 df_ = df[['Id', 'Order', 'lh_density', 'rh_density']]
 df_ = pd.melt(df_, id_vars=['Id','Order'],

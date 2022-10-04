@@ -12,7 +12,9 @@ import os
 import itertools as itr
 import numpy as np
 import pandas as pd
+
 from scipy import stats
+from sklearn.manifold import MDS
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
@@ -63,60 +65,12 @@ def fig2_pa(distance, title, flag):
                               ylabelrotation=0,
                               cbar=True,
                               cmap=sns.cubehelix_palette(as_cmap=True),
-                              vmin=0.0,
-                              vmax=1.0,
+                              # vmin=0.0,
+                              # vmax=1.0,
+                              # robust=True,
                               rasterized=True
                               )
     # ax.figure.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'{title}.eps'), transparent=True, bbox_inches='tight', dpi=300)
-
-#%% summary distance between orders
-def fig2_pb(distance, title, flag):
-
-    distance_ = distance.copy()
-    distance_ = (distance_-np.min(distance_))/(np.max(distance_)-np.min(distance_))
-
-    avg_distance = np.zeros((len(order_labels),len(order_labels)))
-    for cluster_a,cluster_b in list(itr.combinations_with_replacement(order_labels.keys(), 2)):
-
-        idx_a = np.where(info.Order[flag==1] == cluster_a)[0]
-        idx_b = np.where(info.Order[flag==1] == cluster_b)[0]
-
-        i = order_labels[cluster_a]-1
-        j = order_labels[cluster_b]-1
-
-        avg_distance[i,j] = np.median(distance_[np.ix_(idx_a, idx_b)])
-        avg_distance[j,i] = avg_distance[i,j]
-
-
-    # global scaling
-    avg_distance = (avg_distance-np.min(avg_distance))/(np.max(avg_distance)-np.min(avg_distance))
-
-    mask = np.zeros_like(avg_distance).astype(bool)
-    mask[np.tril_indices_from(mask, -1)] = True
-
-    # plot
-    sns.set(style="ticks", font_scale=2.0)
-    fig = plt.figure(figsize=(12,10))
-    ax = plt.subplot(111)
-    sns.heatmap(avg_distance,
-                square=True,
-                annot=True,
-                xticklabels=order_labels.keys(),
-                yticklabels=order_labels.keys(),
-                annot_kws={'fontsize':20},
-                cmap=sns.cubehelix_palette(as_cmap=True),
-                linewidth=0.7,
-                linecolor='white',
-                cbar_kws={"shrink":0.985},
-                # rasterized=True,
-                mask=mask
-                )
-
-    plt.xticks(rotation=45)
-    # fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'median_{title}.eps'), transparent=True, bbox_inches='tight', dpi=300)
-    plt.show()
-    plt.close()
-
 
 #%%
 def u_test(x,y):
@@ -183,16 +137,16 @@ def fig2_pc(distance, title, flag):
 
     sns.set(style="ticks", font_scale=2.0)
     fig, ax = plt.subplots(1,1, figsize=(5,5))
-    
+
     sns.histplot(x=within['distance'],
-             fill=True,
-             ax=ax,
-             label='within',
-             stat='probability',
-             color='#d379b1',
-             # cut=0,
-             # clip=(0, 1.0)
-             )
+                 fill=True,
+                 ax=ax,
+                 label='within',
+                 stat='probability',
+                 color='#d379b1',
+                 # cut=0,
+                 # clip=(0, 1.0)
+                 )
 
     sns.histplot(x=between['distance'],
                  fill=True,
@@ -205,13 +159,10 @@ def fig2_pc(distance, title, flag):
                  )
 
     ax.yaxis.set_minor_locator(MultipleLocator(0.025))
-    ax.yaxis.set_major_locator(MultipleLocator(0.05))
-    ax.xaxis.set_minor_locator(MultipleLocator(0.25))
-    ax.xaxis.set_major_locator(MultipleLocator(0.5))
-    ax.set_xlim(0, 1.0)
-    ax.set_ylim(0, 0.15)
-    # plt.legend()
-    sns.despine(offset=10, trim=False)
+    ax.xaxis.set_minor_locator(MultipleLocator(0.5))
+    ax.set_ylim(0,0.16)
+    plt.legend()
+    sns.despine(offset=10, trim=True)
     # fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'intra_vs_inter_{title}.eps'), transparent=True, bbox_inches='tight', dpi=300)
     plt.show()
     plt.close()
@@ -228,6 +179,54 @@ def fig2_pc(distance, title, flag):
     print(f'variance intra: {np.var(within.distance)}')
     print(f'variance inter: {np.var(between.distance)}')
 
+#%%
+def perform_embedding(distance, title=None, flag=None, **kwargs):
+    
+    def mds(data, n_components=2, **kwargs):
+        reducer = MDS(n_components=n_components,
+                      **kwargs)
+        embedding = reducer.fit_transform(data)
+        return embedding
+
+    embedding = mds(distance, dissimilarity='precomputed', **kwargs)
+    c1, c2 = embedding[:,0], embedding[:,1]
+
+    # -------------------------------------------------------
+    if flag is None:
+        info_ = info.copy()
+    else:
+        info_ = info.copy()[flag==1]
+
+    info_['c1'] = c1
+    info_['c2'] = c2
+        
+    sns.set(style="ticks", font_scale=1.5)  
+    fig, axs = plt.subplots(1, 1, figsize=(5,5))
+
+    sns.scatterplot(data=info_,
+                    x='c1', 
+                    y='c2', 
+                    hue = 'Order',
+                    hue_order=order_labels, #*******
+                    ci=None, 
+                    legend=False, 
+                    # color=COLORS[label], 
+                    palette=sns.color_palette("Set3", len(order_labels)),#*******
+                    s=80,
+                    ax=axs,
+                    )
+        
+    # axs.legend(fontsize=15)
+    fig.suptitle(title)
+    # axs.set_xlim(-0.2,1.2)
+    # axs.set_ylim(-0.2,1.2)
+
+    sns.despine(offset=10, trim=False)
+    # fig.savefig(fname=os.path.join('C:/Users/User/OneDrive - McGill University/Figs', f'{title}.eps'), transparent=True, bbox_inches='tight', dpi=300)
+    plt.show()
+    plt.close()
+
+
 
 #%%
 def get_order_flag():
@@ -243,28 +242,54 @@ def get_name_flag():
 
 #%%
 distances = [
-            'spectral_distance',
-            'topological_distance',
+            'spec_dist_eigkde_cosine',
+            'spec_dist_eig_cosine',
+            'spec_dist_eigkde_euclid',
+            'spec_dist_eig_euclid',
             ]
 
-
+#%%
+RES_DIR = os.path.join(RAW_DIR, 'distance_metric_control', 'zscored')
 for distance in distances:
-    
-    print(f'\n----------- average {distance} ------------')
-    avg_dist = np.load(os.path.join(RAW_DIR, f'avg_{distance}.npy'))
+
+    print(f'\n----------- z-scored average {distance} ------------')
+    avg_dist = np.load(os.path.join(RES_DIR, f'avg_{distance}.npy'))
     order_flag = get_order_flag()
     name_flag  = get_name_flag()
     flag = np.logical_and(order_flag, name_flag)
 
+    # perform_embedding(avg_dist, f'avg_{distance}', flag)
     fig2_pa(avg_dist, f'avg_{distance}', flag)
-    fig2_pb(avg_dist, f'avg_{distance}', flag)
     fig2_pc(avg_dist, f'avg_{distance}', flag)
 
-    # print(f'\n----------- {distance} ------------')
-    # dist = np.load(os.path.join(RAW_DIR, f'{distance}.npy'))
-    # flag = get_order_flag()
 
+    # print(f'\n----------- z-scored {distance} ------------')
+    dist = np.load(os.path.join(RES_DIR, f'{distance}.npy'))
+    flag = get_order_flag()
+
+    perform_embedding(dist[np.ix_(flag==1,flag==1)], distance, flag)
     # fig2_pa(dist[np.ix_(flag==1,flag==1)], distance, flag)
-    # fig2_pb(dist[np.ix_(flag==1,flag==1)], distance, flag)
     # fig2_pc(dist[np.ix_(flag==1,flag==1)], distance, flag)
 
+#%%
+RES_DIR = os.path.join(RAW_DIR, 'distance_metric_control', 'nonzscored')
+for distance in distances:
+
+    print(f'\n----------- non - z-scored average {distance} ------------')
+    avg_dist = np.load(os.path.join(RES_DIR, f'avg_{distance}.npy'))
+    order_flag = get_order_flag()
+    name_flag  = get_name_flag()
+    flag = np.logical_and(order_flag, name_flag)
+
+    # perform_embedding(avg_dist, f'avg_{distance}', flag)
+    fig2_pa(avg_dist, f'avg_{distance}', flag)
+    fig2_pc(avg_dist, f'avg_{distance}', flag)
+
+
+    # print(f'\n----------- non - z-scored {distance} ------------')
+    dist = np.load(os.path.join(RES_DIR, f'{distance}.npy'))
+    flag = get_order_flag()
+
+    perform_embedding(dist[np.ix_(flag==1,flag==1)], distance, flag)
+    # fig2_pa(dist[np.ix_(flag==1,flag==1)], distance, flag)
+    # fig2_pc(dist[np.ix_(flag==1,flag==1)], distance, flag)

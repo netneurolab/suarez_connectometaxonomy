@@ -9,37 +9,23 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import os
-import re
 import time
-import itertools as itr
 import numpy as np
-import pandas as pd
 import bct
-from scipy import stats
-import statsmodels.stats.multitest as multi
-from scipy.spatial.distance import cdist
-
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator, MaxNLocator
-import seaborn as sns
-
-from rnns import topology
-
-from netneurotools import modularity
 
 import multiprocessing as mp
 
-
 #%%
+RESOLUTION = '100'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 COOR_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'coords')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_RES_DIR = os.path.join(PROJ_DIR, 'raw_results')
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
-if not os.path.exists(os.path.join(RAW_RES_DIR, 'nulls')):
-    os.mkdir(os.path.join(RAW_RES_DIR, 'nulls'))
+if not os.path.exists(os.path.join(RAW_DIR, 'nulls')):
+    os.mkdir(os.path.join(RAW_DIR, 'nulls'))
 
 RND_SEED = 1234
 
@@ -68,7 +54,7 @@ def generate_rewired_nulls(file):
     nulls = np.dstack(nulls)
 
     filename = file.split('.')[0]
-    np.save(os.path.join(RAW_RES_DIR, 'nulls', f'nulls_{filename}'), nulls)
+    np.save(os.path.join(RAW_DIR, 'nulls', f'nulls_{filename}'), nulls)
 
 
 #%%

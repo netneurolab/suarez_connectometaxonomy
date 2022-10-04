@@ -7,48 +7,31 @@ Created on Thu Aug 26 16:04:13 2021
 import warnings
 warnings.filterwarnings("ignore")
 
-# warnings.simplefilter(action='ignore', category=FutureWarning)
-
 import os
-import re
-import itertools as itr
-
 import numpy as np
 import pandas as pd
-
-from scipy import stats
-from scipy.spatial.distance import (pdist,squareform)
-from sklearn.preprocessing import (MinMaxScaler, LabelEncoder)
-
-from netneurotools import plotting
 
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from rnns import topology
 import curve_fitting as cf
 
 #%%
+RESOLUTION = '100'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
 #%%
 order_labels = [
                 'Chiroptera',
                 'Rodentia',
-                'Artiodactyla',
+                'Cetartiodactyla',
                 'Carnivora',
                 'Perissodactyla',
                 'Primates',
-                # 'Xenarthra',
-                # 'Marsupialia',
-                # 'Eulipotyphla',
-                # 'Scandentia',
-                # 'Lagomorpha',
-                # 'Hyracoidea'
                 ]
 
 #%%
@@ -170,4 +153,4 @@ df_props = df_props.drop(drop_idx)
 
 #%%
 df_reg_props = select_model(df_props.copy(), 'density', all_)
-df_reg_props.to_csv(os.path.join(RAW_DIR, 'df_props_reg.csv'), index=False)
+df_reg_props.to_csv(os.path.join(RAW_DIR, 'density_reg',' df_props_reg.csv'), index=False)

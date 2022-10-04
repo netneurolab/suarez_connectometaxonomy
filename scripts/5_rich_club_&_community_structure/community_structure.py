@@ -9,35 +9,21 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import os
-import re
 import time
-import itertools as itr
 
 import numpy as np
-import pandas as pd
-import bct
-from scipy import stats
-import statsmodels.stats.multitest as multi
-from scipy.spatial.distance import cdist
-
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator, MaxNLocator
-import seaborn as sns
-
-from rnns import topology
-
-from netneurotools import modularity, cluster
+from netneurotools import modularity
 
 import multiprocessing as mp
 
-
 #%%
+RESOLUTION = '100'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 COOR_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'coords')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_RES_DIR = os.path.join(PROJ_DIR, 'raw_results')
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
 RND_SEED = 1234
 
@@ -49,7 +35,7 @@ def community_detection(file, gammas):
         print(f'-------{file}--------')
 
         filename = file.split('.')[0]
-        if not os.path.exists(os.path.join(RAW_RES_DIR, 'community_detection', f'{filename}_communities.npy')):
+        if not os.path.exists(os.path.join(RAW_DIR, 'community_detection', f'{filename}_communities.npy')):
 
             # binary connectivity matrix
             w = np.load(os.path.join(CONN_DIR, file)).astype(bool).astype(int)
@@ -64,8 +50,8 @@ def community_detection(file, gammas):
                 ci.append(ci_)
                 q.append(q_)
 
-            np.save(os.path.join(RAW_RES_DIR, 'community_detection', f'{filename}_modularity_scores'), q)
-            np.save(os.path.join(RAW_RES_DIR, 'community_detection', f'{filename}_communities'), ci)
+            np.save(os.path.join(RAW_DIR, 'community_detection', f'{filename}_modularity_scores'), q)
+            np.save(os.path.join(RAW_DIR, 'community_detection', f'{filename}_communities'), ci)
 
 
 #%%

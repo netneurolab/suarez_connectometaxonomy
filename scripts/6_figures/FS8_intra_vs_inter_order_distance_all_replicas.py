@@ -131,7 +131,7 @@ def fig3(distance, title, flag):
     ax.yaxis.set_major_locator(MultipleLocator(0.05))
     ax.xaxis.set_minor_locator(MultipleLocator(0.25))
     ax.xaxis.set_major_locator(MultipleLocator(0.5))
-    ax.set_ylim(0,0.15) # 0, 0.15
+    ax.set_ylim(0,0.20) # 0, 0.15
     ax.set_xlim(0,1)
 
     # plt.legend()
@@ -181,16 +181,8 @@ distances = [
 
 for distance in distances:
 
-    print(f'\n----------- average {distance} ------------')
-    avg_dist = np.load(os.path.join(RAW_DIR, f'avg_{distance}.npy'))
-    order_flag = get_order_flag()
-    name_flag  = get_name_flag()
-    flag = np.logical_and(order_flag, name_flag)
+    print(f'\n----------- {distance} ------------')
+    dist = np.load(os.path.join(RAW_DIR, f'{distance}.npy'))
+    flag = get_order_flag()
 
-    fig3(avg_dist, f'avg_{distance}', flag)
-
-    # print(f'\n----------- {distance} ------------')
-    # dist = np.load(os.path.join(RAW_DIR, f'{distance}.npy'))
-    # flag = get_order_flag()
-
-    # fig3(dist[np.ix_(flag==1,flag==1)], distance, flag)
+    fig3(dist[np.ix_(flag==1,flag==1)], distance, flag)

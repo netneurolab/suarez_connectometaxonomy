@@ -10,38 +10,29 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import os
 import re
-import itertools as itr
 
 import numpy as np
 import pandas as pd
 
-from scipy import stats
-from scipy.spatial.distance import (pdist,squareform)
-from sklearn.preprocessing import (MinMaxScaler, LabelEncoder)
-
-from netneurotools import plotting
-
-import seaborn as sns
-import matplotlib.pyplot as plt
 from rnns import topology
 
 #%%
+RESOLUTION = '100'
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJ_DIR, 'data')
-CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', 'conn')
+CONN_DIR = os.path.join(DATA_DIR, 'connectivity', 'mami', f'conn_{RESOLUTION}')
 INFO_DIR = os.path.join(DATA_DIR, 'info')
-RAW_DIR = os.path.join(PROJ_DIR, 'raw_results')
+RAW_DIR  = os.path.join(PROJ_DIR, 'raw_results', f'res_{RESOLUTION}')
 
-#%% connectivity matrix
-data = pd.read_csv(os.path.join(INFO_DIR, 'list.csv'), dtype={'Name':str})
-
+try:
+    os.mkdir(RAW_DIR)
+except:
+    pass
 
 #%%
-filenames = []
-names = []
-order = []
-superorder = []
-family = []
+df_info = pd.read_csv(os.path.join(INFO_DIR, 'info.csv'), dtype={'Name':str})
+
+#%%
 conn = []
 for file in os.listdir(CONN_DIR):
     filename = file.split('.')[0]
@@ -50,31 +41,7 @@ for file in os.listdir(CONN_DIR):
 
     conn.append(np.load(os.path.join(CONN_DIR, file)))
 
-    names.append(name)
-    filenames.append(filename)
-
-    try:
-        order.append(str(data.loc[data.Name == name]['Order'].values[0]))
-        superorder.append(str(data.loc[data.Name == name]['Superorder'].values[0]))
-        family.append(str(data.loc[data.Name == name]['Family'].values[0]))
-
-    except:
-        order.append('')
-        superorder.append('')
-        family.append('')
-
-filenames = np.array(filenames)
-names = np.array(names)
-order = np.array(order)
-superorder = np.array(superorder)
-family = np.array(family)
 conn = np.dstack(conn)
-
-
-#%%
-df_info = pd.DataFrame(data=np.column_stack([np.arange(len(filenames)), names, filenames, order, superorder, family]),
-                       columns=['Id', 'Name', 'Filename', 'Order', 'Superorder', 'Family'],
-                       index=None)
 
 #%% local properties
 local_node_props = [
@@ -92,9 +59,13 @@ local_node_props = [
 avg_local_p = []
 std_local_p = []
 for prop in local_node_props:
-    p = topology.local_topology(w=conn, property=prop)
-    np.save(os.path.join(RAW_DIR, f'{prop}.npy'), p)
-
+    
+    try:
+        p = np.load(os.path.join(RAW_DIR, 'local_props', f'{prop}.npy'))
+    except:
+        p = topology.local_topology(w=conn, property=prop)
+        np.save(os.path.join(RAW_DIR, 'local_props', f'{prop}.npy'), p)
+    
     avg_local_p.append(np.mean(p, axis=1))
     std_local_p.append(np.std(p, axis=1))
 
@@ -122,7 +93,12 @@ global_props = [
 
 global_p = []
 for prop in global_props:
-    p = topology.global_topology(w=conn, property=prop)
+
+    try:
+        p = np.load(os.path.join(RAW_DIR, f'{prop}.npy'))
+    except:
+        p = topology.global_topology(w=conn, property=prop)
+    
     global_p.append(p)
 
 df_global = pd.DataFrame(data=np.column_stack(global_p),
@@ -131,11 +107,13 @@ df_global = pd.DataFrame(data=np.column_stack(global_p),
 
 
 #%% mesoscale properties - density
-idx = np.tril_indices(200, -1)
-idx_h = np.tril_indices(100, -1)
+N = 2*int(RESOLUTION)
+idx = np.tril_indices(N, -1)
+idx_h = np.tril_indices(int(N/2), -1)
 
-idx_lh = np.arange(100)
-idx_rh = np.arange(100,200)
+
+idx_lh = np.arange(int(N/2))
+idx_rh = np.arange(int(N/2),N)
 
 global_density = []
 lh_conns = []
