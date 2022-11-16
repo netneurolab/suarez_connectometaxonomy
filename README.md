@@ -2,7 +2,7 @@
 
 ## "What's in this repository?"
 
-This repository contains code for the analysis presented in the preprint "[A connectomics-based taxonomy of mammals](https://doi.org/10.1101/2022.03.11.483995)" by Laura E. Suarez, Yossi Yovel, Martijn P. van den Heuvel, Olaf Sporns, Yaniv Assaf, Guillaume Lajoie and Bratislav Misic.
+This repository contains code for the analysis presented in "[A connectomics-based taxonomy of mammals](https://elifesciences.org/articles/78635)" by Laura E. Suarez, Yossi Yovel, Martijn P. van den Heuvel, Olaf Sporns, Yaniv Assaf, Guillaume Lajoie and Bratislav Misic.
 
 We revised previously morphologically and genetically established taxonomies from a connectomics perspective. Specifically, we investigated the extent to which inter-species differences in the organization of connectome wiring conform to these traditional taxonomies.
 
